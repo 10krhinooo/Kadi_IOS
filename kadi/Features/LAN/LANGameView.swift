@@ -1,0 +1,152 @@
+//
+//  LANGameView.swift
+//  kadi
+//
+
+import SwiftUI
+import KadiEngine
+import KadiNetworking
+
+/// LAN multiplayer game screen. Mirrors `SoloGameView`'s structure, driven by
+/// `LANGameViewModel` instead of `SoloGameViewModel`, with added connection-status /
+/// host-migration UI.
+struct LANGameView: View {
+    @StateObject private var viewModel: LANGameViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    init(role: LANGameViewModel.Role, localPlayerIndex: Int, initialState: GameState, rules: RuleSet, gameName: String) {
+        _viewModel = StateObject(wrappedValue: LANGameViewModel(
+            role: role,
+            localPlayerIndex: localPlayerIndex,
+            initialState: initialState,
+            rules: rules,
+            gameName: gameName
+        ))
+    }
+
+    private var opponents: [(offset: Int, player: Player)] {
+        viewModel.state.players.enumerated()
+            .filter { $0.offset != viewModel.localPlayerIndex }
+            .map { (offset: $0.offset, player: $0.element) }
+    }
+
+    var body: some View {
+        ZStack {
+            KadiTheme.tableFeltGradient.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                if let migrationMessage = viewModel.migrationMessage {
+                    ConnectionStatusBanner(
+                        message: migrationMessage,
+                        isError: viewModel.migrationState == .reconnectFailed,
+                        onRetry: viewModel.migrationState == .reconnectFailed ? { viewModel.retryReconnect() } : nil
+                    )
+                    .padding(.top, KadiTheme.Layout.spacingM)
+                }
+
+                HStack(spacing: KadiTheme.Layout.spacingM) {
+                    ForEach(opponents, id: \.offset) { offset, player in
+                        OpponentSlotView(
+                            name: player.name,
+                            cardCount: player.cardCount,
+                            isCurrentTurn: viewModel.state.currentPlayerIndex == offset,
+                            avatarIndex: player.avatarIndex,
+                            isCPUControlled: viewModel.disconnectedPlayerIndices.contains(offset)
+                        )
+                    }
+                }
+                .padding(.top, KadiTheme.Layout.spacingM)
+                .padding(.horizontal, KadiTheme.Layout.spacingM)
+
+                if viewModel.isLocalPlayerTurn {
+                    PillBadge(text: "Your Turn")
+                        .padding(.top, KadiTheme.Layout.spacingS)
+                } else {
+                    PillBadge(text: "\(viewModel.state.currentPlayer.name)'s Turn")
+                        .padding(.top, KadiTheme.Layout.spacingS)
+                }
+
+                Spacer()
+
+                GameTableView(
+                    topCard: viewModel.state.topCard,
+                    drawCount: viewModel.state.drawPile.count,
+                    direction: viewModel.state.direction,
+                    pendingDrawCount: viewModel.state.pendingDrawCount,
+                    forcedSuit: viewModel.state.forcedSuit
+                )
+
+                Spacer()
+
+                VStack(spacing: KadiTheme.Layout.spacingS) {
+                    if viewModel.isLocalPlayerTurn && viewModel.state.phase == .questionAnswer {
+                        QuestionAnswerBanner(forcedSuit: viewModel.state.forcedSuit) {
+                            viewModel.pass()
+                        }
+                    }
+
+                    PlayerHandView(
+                        cards: viewModel.localPlayer.hand,
+                        playableIndices: viewModel.playableIndices,
+                        selectedIndices: viewModel.selectedCardIndices,
+                        onTap: { viewModel.toggleSelection(at: $0) }
+                    )
+
+                    if viewModel.isLocalPlayerTurn && viewModel.state.phase == .playing {
+                        LANActionBar(viewModel: viewModel)
+                    }
+                }
+                .padding(.bottom, KadiTheme.Layout.spacingM)
+            }
+
+            overlay
+        }
+        .navigationBarBackButtonHidden(viewModel.state.phase != .finished)
+        .onDisappear {
+            viewModel.stop()
+        }
+        .alert("Invalid Move", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
+    }
+
+    @ViewBuilder
+    private var overlay: some View {
+        if viewModel.state.phase == .finished {
+            GameOverOverlay(
+                winnerName: viewModel.winner?.name,
+                onPlayAgain: { dismiss() },
+                onBackToHome: { dismiss() }
+            )
+        } else if viewModel.isLocalPlayerTurn {
+            switch viewModel.state.phase {
+            case .suitChoice:
+                SuitChoiceOverlay { suit in viewModel.chooseSuit(suit) }
+            case .demandEntry:
+                DemandEntryOverlay { rank, suit in viewModel.makeDemand(rank: rank, suit: suit) }
+            case .cardDemand:
+                CardDemandOverlay(
+                    demandedCard: viewModel.state.demandedCard,
+                    hasDemandedCard: viewModel.state.demandedCard.map { viewModel.localPlayer.hand.contains($0) } ?? false,
+                    acesInHand: viewModel.localPlayer.hand.filter { $0.isAce },
+                    onPlayDemanded: { viewModel.respondToDemand(card: viewModel.state.demandedCard) },
+                    onPlayAce: { viewModel.respondToDemand(card: $0) },
+                    onDrawInstead: { viewModel.respondToDemand(card: nil) }
+                )
+            case .skipIntercept:
+                SkipInterceptOverlay(
+                    jacksInHand: viewModel.localPlayer.hand.filter { $0.isSkipCard },
+                    onIntercept: { jacks in viewModel.interceptSkip(jacks: jacks) },
+                    onDecline: { viewModel.declineIntercept() }
+                )
+            default:
+                EmptyView()
+            }
+        }
+    }
+}

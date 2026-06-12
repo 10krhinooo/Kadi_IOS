@@ -1,0 +1,19 @@
+# Swift Package Manager
+KadiEngine/.build/
+KadiEngine/.swiftpm/
+KadiNetworking/.build/
+KadiNetworking/.swiftpm/
+KadiOnline/.build/
+KadiOnline/.swiftpm/
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+
+# Firebase emulator
+firestore-debug.log
+ui-debug.log
+firebase-debug.log
+database-debug.log
+.firebase/

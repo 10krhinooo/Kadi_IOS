@@ -1,0 +1,22 @@
+{
+  "firestore": {
+    "rules": "firestore.test.rules"
+  },
+  "database": {
+    "rules": "database.test.rules.json"
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8089
+    },
+    "auth": {
+      "port": 9199
+    },
+    "database": {
+      "port": 9000
+    },
+    "ui": {
+      "enabled": false
+    }
+  }
+}

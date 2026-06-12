@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		7038B733834244BFA090348A /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0A3B24B0D0164CDC9C36ABC4 /* GoogleSignInSwift */; };
+		79AE7D994E014DC5B8A697CD /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7AE9325FCB6949D69B086B57 /* FirebaseCore */; };
+		B400FA48E2FA0B37D49F736F /* KadiNetworking in Frameworks */ = {isa = PBXBuildFile; productRef = 66751D6FA0B110916C2818D6 /* KadiNetworking */; };
+		DDC1906732F04E98AFE5C713 /* KadiOnline in Frameworks */ = {isa = PBXBuildFile; productRef = C270197C2EB7474FA3441BCB /* KadiOnline */; };
+		E12BD333379C43E48B73DB0F /* KadiEngine in Frameworks */ = {isa = PBXBuildFile; productRef = B7E3BF7178684A7B91705F3E /* KadiEngine */; };
+		F59660F4A9794FC2A22F64C8 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 05FED3AFC22D4BB68A9646F1 /* GoogleSignIn */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		8DC0333E2FD990B300D94539 /* kadi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = kadi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +32,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E12BD333379C43E48B73DB0F /* KadiEngine in Frameworks */,
+				B400FA48E2FA0B37D49F736F /* KadiNetworking in Frameworks */,
+				DDC1906732F04E98AFE5C713 /* KadiOnline in Frameworks */,
+				79AE7D994E014DC5B8A697CD /* FirebaseCore in Frameworks */,
+				F59660F4A9794FC2A22F64C8 /* GoogleSignIn in Frameworks */,
+				7038B733834244BFA090348A /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +80,12 @@
 			);
 			name = kadi;
 			packageProductDependencies = (
+				B7E3BF7178684A7B91705F3E /* KadiEngine */,
+				66751D6FA0B110916C2818D6 /* KadiNetworking */,
+				C270197C2EB7474FA3441BCB /* KadiOnline */,
+				7AE9325FCB6949D69B086B57 /* FirebaseCore */,
+				05FED3AFC22D4BB68A9646F1 /* GoogleSignIn */,
+				0A3B24B0D0164CDC9C36ABC4 /* GoogleSignInSwift */,
 			);
 			productName = kadi;
 			productReference = 8DC0333E2FD990B300D94539 /* kadi.app */;
@@ -94,6 +115,13 @@
 			);
 			mainGroup = 8DC033352FD990B300D94539;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A602B66450B9430E8A69DAA4 /* XCLocalSwiftPackageReference "KadiEngine" */,
+				D67CC6C72AD21AC09C02C829 /* XCLocalSwiftPackageReference "KadiNetworking" */,
+				375697375A8A441EA1D702B9 /* XCLocalSwiftPackageReference "KadiOnline" */,
+				8D6E3A5EFBC74EF2931A3846 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				300E22769CE549CFBF4E788D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8DC0333F2FD990B300D94539 /* Products */;
 			projectDirPath = "";
@@ -345,6 +373,70 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		375697375A8A441EA1D702B9 /* XCLocalSwiftPackageReference "KadiOnline" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = KadiOnline;
+		};
+		A602B66450B9430E8A69DAA4 /* XCLocalSwiftPackageReference "KadiEngine" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = KadiEngine;
+		};
+		D67CC6C72AD21AC09C02C829 /* XCLocalSwiftPackageReference "KadiNetworking" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = KadiNetworking;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		300E22769CE549CFBF4E788D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+		8D6E3A5EFBC74EF2931A3846 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		05FED3AFC22D4BB68A9646F1 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 300E22769CE549CFBF4E788D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		0A3B24B0D0164CDC9C36ABC4 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 300E22769CE549CFBF4E788D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+		66751D6FA0B110916C2818D6 /* KadiNetworking */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KadiNetworking;
+		};
+		7AE9325FCB6949D69B086B57 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8D6E3A5EFBC74EF2931A3846 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		B7E3BF7178684A7B91705F3E /* KadiEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KadiEngine;
+		};
+		C270197C2EB7474FA3441BCB /* KadiOnline */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KadiOnline;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8DC033362FD990B300D94539 /* Project object */;
 }
