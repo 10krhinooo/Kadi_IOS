@@ -6,6 +6,21 @@
 import SwiftUI
 import KadiEngine
 
+private extension Suit {
+    /// SF Symbol name for this suit, used instead of the emoji `symbol` (which can
+    /// render as "?" tofu at large sizes on some simulators/devices).
+    var sfSymbolName: String {
+        switch self {
+        case .hearts: return "suit.heart.fill"
+        case .diamonds: return "suit.diamond.fill"
+        case .clubs: return "suit.club.fill"
+        case .spades: return "suit.spade.fill"
+        }
+    }
+
+    var isRed: Bool { self == .hearts || self == .diamonds }
+}
+
 /// Shown when `phase == .suitChoice` and it's the human's turn — pick a suit after
 /// playing a non-Ace-of-Spades Ace, or after an 8/Q in a suit-choice path.
 struct SuitChoiceOverlay: View {
@@ -18,8 +33,9 @@ struct SuitChoiceOverlay: View {
                     Button {
                         onChoose(suit)
                     } label: {
-                        Text(suit.symbol)
-                            .font(.system(size: 32))
+                        Image(systemName: suit.sfSymbolName)
+                            .font(.system(size: 28))
+                            .foregroundStyle(suit.isRed ? KadiTheme.Colors.suitRed : KadiTheme.Colors.suitBlack)
                             .frame(width: 56, height: 56)
                             .background(KadiTheme.Colors.surfaceElevated)
                             .clipShape(RoundedRectangle(cornerRadius: KadiTheme.Layout.cornerRadius))

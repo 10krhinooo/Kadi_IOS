@@ -3,18 +3,26 @@ import FirebaseFirestore
 import FirebaseDatabase
 import FirebaseAuth
 import Foundation
+#if canImport(UIKit)
+import GoogleSignIn
+#endif
 
 /// Configures Firebase for the running process. Call once at app startup.
 public enum FirebaseBootstrap {
     private static var configured = false
 
-    /// Configures Firebase against the real `kadi-254` project using
+    /// Configures Firebase against the real `kadi-ios` project using
     /// `GoogleService-Info.plist` bundled with the app target. RTDB presence/quickChat
-    /// (Phase 3c) requires the Realtime Database to be enabled for `kadi-254` in the
+    /// (Phase 3c) requires the Realtime Database to be enabled for `kadi-ios` in the
     /// Firebase console so `DATABASE_URL` is present in the plist.
     public static func configure() {
         guard !configured else { return }
         FirebaseApp.configure()
+        #if canImport(UIKit)
+        if let clientID = FirebaseApp.app()?.options.clientID {
+            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
+        }
+        #endif
         configured = true
     }
 

@@ -1,26 +1,25 @@
 //
-//  LANGameView.swift
+//  OnlineGameView.swift
 //  kadi
 //
 
 import SwiftUI
 import KadiEngine
-import KadiNetworking
+import KadiOnline
 
-/// LAN multiplayer game screen. Mirrors `SoloGameView`'s structure, driven by
-/// `LANGameViewModel` instead of `SoloGameViewModel`, with added connection-status /
-/// host-migration UI.
-struct LANGameView: View {
-    @StateObject private var viewModel: LANGameViewModel
+/// Online multiplayer game screen. Mirrors `LANGameView`'s structure, driven by
+/// `OnlineGameViewModel` instead of `LANGameViewModel`. No host-migration UI: `RoomHost`
+/// has no CPU-takeover/reconnect equivalent to `LANGameHost` yet.
+struct OnlineGameView: View {
+    @StateObject private var viewModel: OnlineGameViewModel
     @Environment(\.dismiss) private var dismiss
 
-    init(role: LANGameViewModel.Role, localPlayerIndex: Int, initialState: GameState, rules: RuleSet, gameName: String) {
-        _viewModel = StateObject(wrappedValue: LANGameViewModel(
+    init(role: OnlineGameViewModel.Role, localPlayerIndex: Int, initialState: GameState, roomId: String) {
+        _viewModel = StateObject(wrappedValue: OnlineGameViewModel(
             role: role,
             localPlayerIndex: localPlayerIndex,
             initialState: initialState,
-            rules: rules,
-            gameName: gameName
+            roomId: roomId
         ))
     }
 
@@ -35,15 +34,6 @@ struct LANGameView: View {
             KadiTheme.tableFeltGradient.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                if let migrationMessage = viewModel.migrationMessage {
-                    ConnectionStatusBanner(
-                        message: migrationMessage,
-                        isError: viewModel.migrationState == .reconnectFailed,
-                        onRetry: viewModel.migrationState == .reconnectFailed ? { viewModel.retryReconnect() } : nil
-                    )
-                    .padding(.top, KadiTheme.Layout.spacingM)
-                }
-
                 HStack(spacing: KadiTheme.Layout.spacingM) {
                     ForEach(opponents, id: \.offset) { offset, player in
                         OpponentSlotView(
@@ -51,7 +41,7 @@ struct LANGameView: View {
                             cardCount: player.cardCount,
                             isCurrentTurn: viewModel.state.currentPlayerIndex == offset,
                             avatarIndex: player.avatarIndex,
-                            isCPUControlled: viewModel.disconnectedPlayerIndices.contains(offset)
+                            isCPUControlled: false
                         )
                     }
                 }
@@ -93,7 +83,7 @@ struct LANGameView: View {
                     )
 
                     if viewModel.isLocalPlayerTurn && viewModel.state.phase == .playing {
-                        LANActionBar(viewModel: viewModel)
+                        OnlineActionBar(viewModel: viewModel)
                     }
                 }
                 .padding(.bottom, KadiTheme.Layout.spacingM)

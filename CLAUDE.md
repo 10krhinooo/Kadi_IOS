@@ -23,9 +23,8 @@ admin panel, Cloud Functions). The full rules and wire-format contract are docum
   mirroring `LANGameHost`'s validate/apply/broadcast pattern over Firestore listeners,
   plus `firestore.rules`/`firestore.test.rules`/`firebase.json` and Xcode/SPM wiring
   (Firebase iOS SDK + GoogleSignIn-iOS) into the `kadi` app target. See
-  `docs/PHASE3A_PLAN.md`. **Outstanding manual step**: `kadi/GoogleService-Info.plist`
-  and the Google Sign-In URL scheme have not been added yet — `FirebaseApp.configure()`
-  will crash at runtime until the plist is provided.
+  `docs/PHASE3A_PLAN.md`. `kadi/GoogleService-Info.plist` (project `kadi-ios`) was added
+  in Phase 4c.
 - **Phase 3b (done)**: `KadiOnline` — the Firestore-only subset of the §L social
   surface deferred from 3a: `FriendsService` (`/users/{uid}/friends`,
   `/friendRequests`, `/blocks`), `ConversationService` (`/conversations` DM chat),
@@ -61,11 +60,42 @@ admin panel, Cloud Functions). The full rules and wire-format contract are docum
   by `LANGameViewModel` (via the `LANGameSession` protocol unifying `LANGameHost`/
   `LANGameClient`) and `LANActionBar`/`ConnectionStatusBanner`, covering CPU takeover
   and full host-migration UI. `SoloGameView`/`SoloGameViewModel`/`ActionBar`/
-  `KadiEngine` were not modified. See `docs/PHASE4B_PLAN.md`. **Note**: as of this
-  phase, `kadiApp.swift`'s `import KadiOnline` and `FirebaseBootstrap.configure()` call
-  are commented out (pending `kadi/GoogleService-Info.plist`, see Phase 3a note above)
-  — re-enable both once the plist is added.
-- **Phase 4c–4d, 5, 6 (not started)**: see Roadmap below.
+  `KadiEngine` were not modified. See `docs/PHASE4B_PLAN.md`.
+- **Phase 4c (done)**: Auth + online lobby + game screen, wiring up `KadiOnline`.
+  Re-enabled `import KadiOnline` + `FirebaseBootstrap.configure()` in `kadiApp.swift`
+  and added `kadi/GoogleService-Info.plist` (project `kadi-ios`; app bundle id changed
+  to `com.victorkimanga.kadi` to match). New `Features/Online/` flow, gated behind
+  Firebase email/password auth: `Auth/AuthViewModel`/`AuthView`/`VerifyEmailView` →
+  `OnlineRootView` → `OnlineSetupView` (name/avatar via `PlayerIdentityStore`, "Create
+  Room"/"Join Room by code") → `OnlineHostLobbyView`/`OnlineHostLobbyViewModel` or
+  `OnlineGuestLobbyView`/`OnlineGuestLobbyViewModel` → `OnlineGameView`/
+  `OnlineGameViewModel` (`@MainActor ObservableObject`, mirroring
+  `LANGameViewModel`'s action surface over `RoomHost`/`RoomClient`) +
+  `Views/OnlineActionBar`. "Online Multiplayer" on `HomeView` now navigates to
+  `OnlineRootView`. No `KadiOnline` package changes were needed. See
+  `docs/PHASE4C_PLAN.md`.
+- **Phase 4d-1 (done)**: Profile/Settings + shared auth/presence plumbing for the
+  "Profile" tab. `Features/Online/Auth/AuthViewModel` moved to `Shared/Auth/AuthViewModel`
+  (an app-wide `@EnvironmentObject`, owned by `kadiApp.swift` and consumed by both
+  `OnlineRootView` and the new `SocialRootView`) so the same signed-in session gates
+  both "Online Multiplayer" and "Profile". New `Features/Social/` flow:
+  `SocialRootView` (auth-gated like `OnlineRootView`) → `SocialHubView` (links to
+  `Profile`/`Settings`, with Friends/Messages/Game Invites/Leaderboard stubbed as
+  disabled "Phase 4d-2" placeholders) → `Profile/ProfileView`/`ProfileViewModel` (edit
+  display name/avatar via `PlayerIdentityStore` + `ProfileService.ensureProfile`, view
+  stats from `/users/{uid}`) and `Settings/SettingsView`/`SettingsViewModel` (sign out
+  via `AuthViewModel`, edit custom status via `PresenceService.updatePresence`). New
+  `Shared/Session/PresenceCoordinator` (owned by `kadiApp.swift`) calls
+  `PresenceService.goOnline`/`goOffline` keyed off `AuthViewModel.AuthState` and
+  `ScenePhase`. "Profile" on `HomeView` now navigates to `SocialRootView`. Also: new
+  shared `Shared/Components/ExitGameButton` (`.exitGameButton(onExit:)` view modifier,
+  a confirm-before-leaving toolbar button) applied to `SoloGameView`/`LANGameView`/
+  `OnlineGameView`; SF Symbol suit icons in `SuitChoiceOverlay` (replacing emoji, which
+  could render as tofu); and a `FirebaseBootstrap` fix that configures
+  `GIDSignIn.sharedInstance.configuration` from the Firebase app's `clientID` (fixing
+  Google Sign-In). No `KadiEngine`/`KadiNetworking` changes. See
+  `docs/PHASE4D1_PLAN.md`.
+- **Phase 4d-2, 5, 6 (not started)**: see Roadmap below.
 
 ## Project layout
 
@@ -76,7 +106,11 @@ kadi/                     (repo root)
 │   ├── GAME_SPEC.md       (canonical rules + wire-format reference, sections A–L)
 │   ├── PHASE1_PLAN.md     (approved plan for Phase 1, preserved for history)
 │   ├── PHASE2_PLAN.md     (approved plan for Phase 2, preserved for history)
-│   └── PHASE3A_PLAN.md    (approved plan for Phase 3a, preserved for history)
+│   ├── PHASE3A_PLAN.md    (approved plan for Phase 3a, preserved for history)
+│   ├── PHASE4A_PLAN.md    (approved plan for Phase 4a, preserved for history)
+│   ├── PHASE4B_PLAN.md    (approved plan for Phase 4b, preserved for history)
+│   ├── PHASE4C_PLAN.md    (approved plan for Phase 4c, preserved for history)
+│   └── PHASE4D1_PLAN.md   (approved plan for Phase 4d-1, preserved for history)
 ├── KadiEngine/            (local Swift package — pure logic, no UIKit/SwiftUI/Firebase deps)
 │   ├── Package.swift
 │   ├── Sources/KadiEngine/
@@ -116,12 +150,19 @@ kadi/                     (repo root)
 ├── database.test.rules.json (relaxed RTDB rules for emulator-driven tests)
 ├── kadi/                  (SwiftUI app target — depends on KadiEngine/KadiNetworking/KadiOnline + Firebase/GoogleSignIn SPM deps)
 │   ├── kadiApp.swift       (entry point; FirebaseBootstrap.configure() + HomeView)
+│   ├── GoogleService-Info.plist (Firebase config for project kadi-ios)
 │   ├── Theme/              (KadiTheme: colors, typography, layout constants)
 │   ├── Shared/Components/  (PlayingCardView, PrimaryButton styles, PillBadge,
-│   │                          PlayerHandView, OpponentSlotView)
+│   │                          PlayerHandView, OpponentSlotView, ExitGameButton)
+│   ├── Shared/Persistence/ (PlayerIdentityStore)
+│   ├── Shared/Auth/        (AuthViewModel — app-wide auth session, Phase 4d-1)
+│   ├── Shared/Session/     (PresenceCoordinator, Phase 4d-1)
 │   └── Features/
 │       ├── Home/           (HomeView, SoloSetupView)
-│       └── Game/            (SoloGameView, SoloGameViewModel, Views/ phase overlays)
+│       ├── Game/            (SoloGameView, SoloGameViewModel, Views/ phase overlays)
+│       ├── LAN/             (LAN multiplayer flow, Phase 4b)
+│       ├── Online/          (Online multiplayer flow, Phase 4c — Auth/, Views/)
+│       └── Social/          (Profile/Settings flow, Phase 4d-1 — Profile/, Settings/)
 └── kadi.xcodeproj/
 ```
 
@@ -138,9 +179,10 @@ kadi/                     (repo root)
 type, and `GameEngine.createGame` / `validateAction` / `applyAction` are pure
 state-transition functions (RNG is injected via `inout some RandomNumberGenerator` for
 determinism in tests). The `kadi` SwiftUI app target depends on `KadiEngine` as a local
-Swift package product (see `kadi.xcodeproj/project.pbxproj`), and as of Phase 4a is the
-only package the app's UI code consumes (`kadiApp.swift` is the sole file touching
-`KadiOnline`, for `FirebaseBootstrap.configure()`).
+Swift package product (see `kadi.xcodeproj/project.pbxproj`); as of Phase 4a it was the
+only package the app's UI code consumed (`kadiApp.swift` was the sole file touching
+`KadiOnline`, for `FirebaseBootstrap.configure()`) — as of Phase 4c, `Features/Online/`
+also consumes `KadiOnline` directly (see below).
 
 `KadiNetworking` is a host-authoritative LAN multiplayer layer built on `Network.framework`,
 depending on `KadiEngine` as a local path dependency. `LANGameHost` is the only place
@@ -167,8 +209,9 @@ suit colors, system/SF Pro typography), `Shared/Components/` (reusable views:
 folders created on disk are automatically part of the target's Sources — no
 `project.pbxproj` edits needed when adding screens. `Features/Home/HomeView` is the root
 view (set in `kadiApp.swift`), with "Solo Play" navigating to `SoloSetupView` →
-`SoloGameView` and (as of Phase 4b) "LAN Multiplayer" navigating to `LANSetupView`;
-Online/Profile entries are present but disabled until Phase 4c–4d.
+`SoloGameView`, (as of Phase 4b) "LAN Multiplayer" navigating to `LANSetupView`, and (as
+of Phase 4c) "Online Multiplayer" navigating to `OnlineRootView`; "Profile" remains
+disabled until Phase 4d.
 `Features/Game/SoloGameViewModel` (`@MainActor`, `ObservableObject`) owns the `GameState`
 for a solo game (human always `players[0]`), drives `GameEngine.validateAction`/
 `applyAction` for human actions, and runs CPU turns via `CpuAgent.chooseAction` (selected
@@ -231,6 +274,37 @@ Firebase Local Emulator Suite (`demo-kadi` placeholder project) for tests. The `
 SwiftUI app target depends on `KadiOnline` as a local Swift package product and calls
 `FirebaseBootstrap.configure()` from `kadiApp.swift`'s `init()`.
 
+`Features/Online/` (Phase 4c) is the Internet equivalent of `Features/LAN/`, using
+`RoomService`/`RoomHost`/`RoomClient` instead of `LANGameHost`/`LANGameClient`, gated
+behind Firebase email/password auth. `Shared/Auth/AuthViewModel` (moved out of
+`Features/Online/` in Phase 4d-1, see below; `@MainActor ObservableObject` wrapping
+`FirebaseAuthService`, mirroring the `Task { for await ... }` + `[weak self]`
+subscription pattern used by `LANHostLobbyViewModel`) exposes an `AuthState`
+(`.loading`/`.signedOut`/`.needsVerification`/`.signedIn`) driving
+`Features/Online/Auth/AuthView` (sign in/up)/`VerifyEmailView` (email-verification
+gate)/`OnlineSetupView`, all owned by `OnlineRootView` (the "Online Multiplayer"
+destination from `HomeView`). `OnlineSetupView` reuses
+`PlayerIdentityStore`/`AvatarPickerView` for name/avatar (persisted as for LAN, but the
+Firebase `authUser.uid` is used as the room player uid), calls
+`ProfileService().ensureProfile(...)` on appear, and offers "Create Room" (
+`RoomService().createRoom(hostUid:hostName:rules:)` → `OnlineHostLobbyView`) or "Join
+Room" by 6-char code (`RoomService().joinRoom(roomId:uid:name:)` → `OnlineGuestLobbyView`,
+with inline errors for `RoomServiceError.roomNotFound`/`.roomFull`/`.roomAlreadyStarted`;
+no host-discovery browser, unlike LAN's Bonjour-based `LANJoinBrowserView`).
+`OnlineHostLobbyViewModel`/`OnlineGuestLobbyViewModel` mirror their LAN counterparts,
+observing `roomService.observeRoom(roomId:)` for the live roster and, once
+`status == .playing`, navigating to `OnlineGameView`. `OnlineGameViewModel`
+(`@MainActor ObservableObject`, mirroring `LANGameViewModel`'s action surface) holds a
+`Role` (`.host(RoomHost)` or `.guest(RoomClient)`); `perform(_:)` runs
+`GameEngine.validateAction` locally for instant feedback but `state` only ever updates
+from `roomService.observeRoom(roomId:)`'s `gameState` field, the same "never mutate
+locally" convergence guarantee as `LANGameViewModel`. `OnlineGameView` +
+`Views/OnlineActionBar` are near-copies of `LANGameView`/`LANActionBar` reusing the same
+`Features/Game/Views/*` overlays, minus `ConnectionStatusBanner`/host-migration UI
+(`RoomHost` has no CPU-takeover/reconnect equivalent to `LANGameHost` yet — a known
+gap, not introduced by Phase 4c). Online opponents always render with avatar index 0
+(`RoomPlayer` doesn't carry an `avatarId`).
+
 The remaining `docs/GAME_SPEC.md` §L social-feature services follow the same
 raw-dict-write + `AsyncThrowingStream` snapshot-listener pattern as `RoomService`.
 `FriendsService` manages `/users/{uid}/friends`, `/friendRequests` (with duplicate-pending
@@ -269,6 +343,33 @@ are plain `Double?` (not `Date?`). `uid`/RTDB child keys are populated by the se
 layer after `data(as:)` decoding, mirroring the Firestore `id: String?` convention
 above.
 
+`Shared/Auth/AuthViewModel` (Phase 4d-1) is now owned at app scope: `kadiApp.swift`
+holds it as a `@StateObject` and injects it via `.environmentObject(authViewModel)` on
+the root `HomeView`, so any feature can gate itself behind the same signed-in session
+via `@EnvironmentObject`. `Features/Social/` (Phase 4d-1) is the "Profile" destination
+from `HomeView`: `SocialRootView` switches on `AuthViewModel.authState` exactly like
+`OnlineRootView` (reusing `Features/Online/Auth/AuthView`/`VerifyEmailView` for the
+`.signedOut`/`.needsVerification` cases) and shows `SocialHubView` once
+`.signedIn`. `SocialHubView` links to `Profile/ProfileView` (`ProfileViewModel`: loads
+`/users/{uid}` via `ProfileService.fetchProfile`, edits display name/avatar via
+`PlayerIdentityStore` + `AvatarPickerView`, saves via `ProfileService.ensureProfile`,
+and renders the `points`/`wins`/`losses`/`gamesPlayed`/`quits` stats from
+`UserProfile`) and `Settings/SettingsView` (`SettingsViewModel`: reads/writes
+`customStatus` via `PresenceService.observePresence`/`updatePresence`, and a "Sign Out"
+button calling `AuthViewModel.signOut()`); Friends/Messages/Game Invites/Leaderboard
+are disabled placeholders, deferred to Phase 4d-2. `Shared/Session/PresenceCoordinator`
+(Phase 4d-1, owned by `kadiApp.swift`) bridges `AuthViewModel.authState` and
+`ScenePhase` to `PresenceService.goOnline`/`goOffline`: signing in (or foregrounding
+while signed in) calls `goOnline`, signing out (or backgrounding) calls `goOffline`.
+Also in Phase 4d-1: `Shared/Components/ExitGameButton` (`.exitGameButton(onExit:)`, a
+leading toolbar button with a confirm-before-leaving alert) is applied to
+`SoloGameView`/`LANGameView`/`OnlineGameView` (all of which hide the system back button
+mid-game); `SuitChoiceOverlay` now renders SF Symbol suit icons
+(`suit.heart/diamond/club/spade.fill`, colored via `KadiTheme.Colors.suitRed`/
+`suitBlack`) instead of emoji glyphs; and `FirebaseBootstrap.configure()` now sets
+`GIDSignIn.sharedInstance.configuration` from `FirebaseApp.app()?.options.clientID`,
+fixing Google Sign-In (previously unconfigured).
+
 ## Wire-format fidelity rule
 
 Any change to `Models/`, `Actions/GameAction.swift`, or any `Codable` conformance MUST keep
@@ -300,11 +401,17 @@ wire format changes.
     (`KadiEngine` only). See Status above and `docs/PHASE4A_PLAN.md`.
   - **Phase 4b (done)**: LAN lobby + multiplayer game screen (`KadiNetworking`). See
     Status above and `docs/PHASE4B_PLAN.md`.
-  - **Phase 4c (not started)**: Auth + online lobby + game screen (`KadiOnline` rooms).
-  - **Phase 4d (not started)**: Social features (friends/chat/invites/leaderboard/
-    profile/settings/presence).
+  - **Phase 4c (done)**: Auth + online lobby + game screen (`KadiOnline` rooms). See
+    Status above and `docs/PHASE4C_PLAN.md`.
+  - **Phase 4d-1 (done)**: Profile/Settings screens, shared app-wide `AuthViewModel`,
+    and RTDB presence wiring (`PresenceCoordinator`). See Status above and
+    `docs/PHASE4D1_PLAN.md`.
+  - **Phase 4d-2 (not started)**: Remaining social features — friends/friend requests,
+    DM chat, game invites, leaderboard (`FriendsService`/`ConversationService`/
+    `GameInviteService`/`LeaderboardService`), surfaced from `SocialHubView`'s
+    currently-disabled placeholders.
 - **Phase 5 — Admin app**: separate SwiftUI (macOS/iPadOS) project for campaign management,
-  sharing the same Firebase project (`kadi-254`).
+  sharing the same Firebase project (`kadi-ios`).
 - **Phase 6 — Cloud Functions**: remain TypeScript (region `europe-west1`), same
   triggers — `onGameInviteCreated`, `onFriendRequestCreated`, `onDmMessageCreated`,
   `onCampaignCreated`/`processCampaigns` — plus FCM push token registration/delivery

@@ -40,15 +40,19 @@ struct HomeView: View {
                         }
                         .buttonStyle(SecondaryButtonStyle())
 
-                        Button("Online Multiplayer") {}
-                            .buttonStyle(SecondaryButtonStyle())
-                            .disabled(true)
-                            .opacity(0.4)
+                        NavigationLink {
+                            OnlineRootView()
+                        } label: {
+                            Text("Online Multiplayer")
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
 
-                        Button("Profile") {}
-                            .buttonStyle(SecondaryButtonStyle())
-                            .disabled(true)
-                            .opacity(0.4)
+                        NavigationLink {
+                            SocialRootView()
+                        } label: {
+                            Text("Profile")
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
                     }
                     .padding(.horizontal, KadiTheme.Layout.spacingL)
 

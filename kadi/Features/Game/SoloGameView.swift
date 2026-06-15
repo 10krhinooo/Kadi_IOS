@@ -79,6 +79,7 @@ struct SoloGameView: View {
             overlay
         }
         .navigationBarBackButtonHidden(viewModel.state.phase != .finished)
+        .exitGameButton { dismiss() }
         .alert("Invalid Move", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
