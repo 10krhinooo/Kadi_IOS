@@ -6,8 +6,8 @@ backend, AI opponents, admin panel, and Cloud Functions.
 
 The full rules and wire-format contract live in [`docs/GAME_SPEC.md`](docs/GAME_SPEC.md)
 (sections A–L) — the canonical reference for every phase of the rebuild. Project
-status, architecture notes, and conventions for contributors (human or AI) are
-documented in [`CLAUDE.md`](CLAUDE.md).
+status, architecture notes, and conventions are documented in
+[`plan.md`](plan.md).
 
 ## Status
 
@@ -20,13 +20,15 @@ documented in [`CLAUDE.md`](CLAUDE.md).
   Google Sign-In), profiles, `/rooms` online multiplayer sync, social features
   (friends, chat, invites, reports, leaderboard, saved rule sets), and RTDB
   presence/quickChat.
-- **Phase 4a (done)** — SwiftUI app shell, theme, Home screen, and a full Solo
-  (vs CPU) game screen.
-- **Phase 4b (done)** — LAN lobby + multiplayer game screen, wiring up
-  `KadiNetworking` (CPU-takeover and host-migration UI included).
-- **Phase 4c–4d, 5, 6 (not started)** — see the Roadmap in `CLAUDE.md`.
+- **Phase 4a–4d (done)** — Full SwiftUI app: Home/Solo (vs CPU), LAN multiplayer
+  lobby + game, Online multiplayer (auth, lobby, game), and the Profile tab
+  (profile/settings, friends, leaderboard, DM chat, game invites).
+- **Phase 6 (done)** — Cloud Functions (friend request/game invite/DM push
+  notifications) + FCM push token registration.
+- **Phase 5 (not started)** — Admin app for campaign management. See the
+  Roadmap in `plan.md`.
 
-See `CLAUDE.md` for the detailed status writeup, architecture, and roadmap.
+See `plan.md` for the detailed status writeup, architecture, and roadmap.
 
 ## Project layout
 
@@ -50,6 +52,6 @@ kadi/                     (repo root)
 
 ## Notes
 
-- `kadi/GoogleService-Info.plist` is not checked in. `FirebaseBootstrap.configure()`
-  is currently commented out in `kadi/kadiApp.swift` until that file is added — see
-  `CLAUDE.md` for details.
+- `kadi/GoogleService-Info.plist` is not checked in (see `.gitignore`). To build the
+  app target, add your own Firebase iOS config file for the project at that path —
+  `FirebaseBootstrap.configure()` in `kadi/kadiApp.swift` requires it.

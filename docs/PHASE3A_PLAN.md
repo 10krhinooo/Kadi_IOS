@@ -4,7 +4,7 @@
 
 Phase 1 (`KadiEngine`) and Phase 2 (`KadiNetworking`) are complete: pure game-engine
 package + a host-authoritative TCP/NDJSON LAN session layer (`LANGameHost`/
-`LANGameClient`). Phase 3 (per `CLAUDE.md`/`plan.md` roadmap) brings online multiplayer
+`LANGameClient`). Phase 3 (per `plan.md` roadmap) brings online multiplayer
 via Firebase, per `docs/GAME_SPEC.md` §L. That spec covers a huge surface (auth,
 rooms/game sync, friends, chat, presence, leaderboard, invites, reports). This plan
 scopes **Phase 3a** to the core: Firebase setup, Auth (Email/Password + Google
@@ -270,7 +270,7 @@ Mirror Phase 2's pbxproj edit pattern:
 8. `firestore.rules` + `firebase.json` draft.
 9. Xcode wiring (`KadiOnline` + Firebase + GoogleSignIn SPM deps); app-target
    `FirebaseApp.configure()` call in `kadiApp.swift` init.
-10. Update `CLAUDE.md`/`plan.md`: mark 3a done, document emulator test command
+10. Update `plan.md`: mark 3a done, document emulator test command
     (`firebase emulators:exec ...`), carry forward the explicit Phase 3b deferred-items
     list (friends, friendRequests, blocks, conversations/DMs, gameInvites, reports,
     RTDB presence/quickChat, leaderboard, saved ruleSets, FCM).

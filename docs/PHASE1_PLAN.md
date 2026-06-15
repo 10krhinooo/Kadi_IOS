@@ -2,7 +2,7 @@
 
 > **Status: COMPLETE.** Preserved verbatim as the approved plan that produced the current
 > `KadiEngine` package, its test suite, the `kadi.xcodeproj` wiring, this `docs/GAME_SPEC.md`,
-> and the root `CLAUDE.md` / `plan.md`. See `plan.md` for current status and the Phase 2–6
+> and the root `plan.md`. See `plan.md` for current status and the Phase 2–6
 > roadmap.
 
 ## Context
@@ -21,7 +21,7 @@ That's a multi-phase effort. This phase focuses on:
 3. Unit tests covering deck construction, full turn-resolution logic (draw stacking, jack
    skip/intercept, king double-reverse, ace/demand flow, Kadi declarations, false-Kadi
    penalty, late-Kadi grace), and JSON round-trips against the documented wire format.
-4. A new, Swift-specific `CLAUDE.md` at the repo root that documents the new architecture,
+4. A new, Swift-specific `plan.md` at the repo root that documents the new architecture,
    build/test commands, wire-format fidelity requirements, and a roadmap for the remaining
    phases (LAN networking, Firebase/online multiplayer, SwiftUI UI, separate admin app,
    Cloud Functions — kept as-is in TS).
@@ -36,7 +36,7 @@ only the default `kadiApp.swift` + `ContentView.swift`. No engine code exists ye
 
 ```
 kadi/                             (repo root)
-├── CLAUDE.md                     (new — Swift project guide, see below)
+├── plan.md                       (new — Swift project guide, see below)
 ├── docs/
 │   └── GAME_SPEC.md              (preserved sections A–L from the Dart reference, verbatim)
 ├── KadiEngine/                   (new local Swift Package — pure logic, no UIKit/SwiftUI/Firebase deps)
@@ -130,9 +130,9 @@ models are, with `CodingKeys`/raw values chosen to match the JSON produced by
   `_bestSuit`), `AdaptiveCpu` (wraps the three, `recordRoundResult`, win-rate-based
   difficulty switching every 3 rounds).
 
-## CLAUDE.md (new, repo root)
+## plan.md (new, repo root)
 
-Replace/author a Swift-focused `CLAUDE.md` containing:
+Replace/author a Swift-focused `plan.md` containing:
 - Project overview: native Swift/SwiftUI rebuild of Kadi; current phase status (engine done,
   networking/Firebase/UI/admin pending) and pointer to `docs/GAME_SPEC.md` for the full
   rules/wire-format contract.
@@ -153,7 +153,7 @@ Replace/author a Swift-focused `CLAUDE.md` containing:
   - **Phase 4 — SwiftUI app**: feature modules mirroring `lib/features/` (game, solo, online,
     multiplayer/LAN, lobby, friends, chat, profile, leaderboard, settings, onboarding,
     presence, auth, home, end), shared theme matching the documented palette/typography
-    (Poppins, dark theme, exact hex colors/text styles from the Dart `CLAUDE.md`).
+    (Poppins, dark theme, exact hex colors/text styles from the Dart project documentation).
   - **Phase 5 — Admin app**: separate SwiftUI (macOS/iPadOS) project for campaign management,
     sharing the same Firebase project (`kadi-254`).
   - **Phase 6 — Cloud Functions**: unchanged, remain TypeScript in `functions/` (or a sibling

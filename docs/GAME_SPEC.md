@@ -2,7 +2,7 @@
 
 This document is the canonical specification for the Kadi game engine, networking protocols,
 and Firebase data model. It is preserved verbatim from the original Flutter implementation's
-`CLAUDE.md` ("Swift Port Reference" section) and is the authority for:
+project documentation ("Swift Port Reference" section) and is the authority for:
 
 - Game rules and engine state transitions (sections A, B, C, D, E, F, G, H, I)
 - LAN multiplayer wire protocol (section J)

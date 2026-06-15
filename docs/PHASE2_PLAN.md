@@ -21,7 +21,7 @@ models (Codable, byte-for-bit compatible with the Dart wire format) and a host-a
 `GameEngine.validateAction`/`applyAction` API. The `kadi` SwiftUI app currently has no
 networking and is just the default Xcode scaffold.
 
-Phase 2's goal (per `CLAUDE.md` roadmap and `docs/GAME_SPEC.md` §J) is to build the LAN
+Phase 2's goal (per `plan.md` roadmap and `docs/GAME_SPEC.md` §J) is to build the LAN
 multiplayer transport layer: TCP/NDJSON protocol, Bonjour + UDP-beacon discovery, and a
 host-authoritative session layer that wraps `GameEngine`. This is a networking/protocol
 phase only — SwiftUI screens for lobby/game UI come in Phase 4. The deliverable is a new,
@@ -181,6 +181,6 @@ No SwiftUI/app-code changes beyond linking the package — the app target doesn'
   device or two simulators on the same Mac.
 - `xcodebuild -project kadi.xcodeproj -scheme kadi -destination 'platform=iOS Simulator,name=iPhone 17' build`
   to confirm the new package links cleanly into the app target.
-- Update `plan.md` / `CLAUDE.md` status section to mark Phase 2 done and describe the new
+- Update `plan.md` status section to mark Phase 2 done and describe the new
   package, following the same pattern Phase 1 used (`docs/PHASE2_PLAN.md` preserved as
-  history, `plan.md`/`CLAUDE.md` updated to reflect current status).
+  history, `plan.md` updated to reflect current status).

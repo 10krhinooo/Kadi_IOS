@@ -2,7 +2,7 @@
 
 ## Context
 
-Per `CLAUDE.md`'s Roadmap, Phase 6 is TypeScript Cloud Functions (region
+Per `plan.md`'s Roadmap, Phase 6 is TypeScript Cloud Functions (region
 `europe-west1`) for `onGameInviteCreated`, `onFriendRequestCreated`,
 `onDmMessageCreated`, plus FCM push token registration/delivery (deferred from
 Phase 3c — token registration is only useful once these triggers exist to
