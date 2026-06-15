@@ -23,6 +23,8 @@ final class OnlineHostLobbyViewModel: ObservableObject {
     let authUser: AuthUser
 
     private let roomService = RoomService()
+    private let gameInviteService = GameInviteService()
+    private let identity = PlayerIdentityStore()
     private var roomTask: Task<Void, Never>?
 
     var canStartGame: Bool { (room?.players.count ?? 0) >= 2 }
@@ -68,6 +70,19 @@ final class OnlineHostLobbyViewModel: ObservableObject {
             } catch {
                 self.errorMessage = "\(error)"
             }
+        }
+    }
+
+    func sendInvite(to friend: Friend) async {
+        do {
+            _ = try await gameInviteService.sendInvite(
+                fromUid: authUser.uid,
+                fromName: identity.name,
+                toUid: friend.uid,
+                roomId: roomId
+            )
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 

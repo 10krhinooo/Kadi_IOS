@@ -106,7 +106,19 @@ admin panel, Cloud Functions). The full rules and wire-format contract are docum
   `PillBadge` pending-friend-request count via new `SocialHubViewModel`. "Messages"/
   "Game Invites" remain disabled placeholders. No `KadiOnline` package changes were
   needed. See `docs/PHASE4D2_PLAN.md`.
-- **Phase 4d-3, 5, 6 (not started)**: see Roadmap below.
+- **Phase 4d-3 (done)**: DM chat + Game Invites, the last two `Features/Social/`
+  screens. New `Features/Social/Messages/ConversationsListView`/
+  `ConversationsViewModel` and `ChatView`/`ChatViewModel` over `KadiOnline`'s
+  `ConversationService`, and `Features/Social/Invites/GameInvitesView`/
+  `GameInvitesViewModel` over `GameInviteService` (accepting an invite calls
+  `RoomService.joinRoom` and navigates to `OnlineGuestLobbyView`). New shared
+  `Features/Social/Friends/FriendPickerSheet`, used by both "New Message" and a
+  new "Invite Friend" button on `OnlineHostLobbyView`/`OnlineHostLobbyViewModel`
+  (`GameInviteService.sendInvite`). `SocialHubView`'s "Messages"/"Game Invites" are
+  now `NavigationLink`s with `PillBadge` unread/pending counts via extended
+  `SocialHubViewModel`. No `KadiOnline` package changes were needed. See
+  `docs/PHASE4D3_PLAN.md`.
+- **Phase 5, 6 (not started)**: see Roadmap below.
 
 ## Project layout
 
@@ -122,7 +134,8 @@ kadi/                     (repo root)
 │   ├── PHASE4B_PLAN.md    (approved plan for Phase 4b, preserved for history)
 │   ├── PHASE4C_PLAN.md    (approved plan for Phase 4c, preserved for history)
 │   ├── PHASE4D1_PLAN.md   (approved plan for Phase 4d-1, preserved for history)
-│   └── PHASE4D2_PLAN.md   (approved plan for Phase 4d-2, preserved for history)
+│   ├── PHASE4D2_PLAN.md   (approved plan for Phase 4d-2, preserved for history)
+│   └── PHASE4D3_PLAN.md   (approved plan for Phase 4d-3, preserved for history)
 ├── KadiEngine/            (local Swift package — pure logic, no UIKit/SwiftUI/Firebase deps)
 │   ├── Package.swift
 │   ├── Sources/KadiEngine/
@@ -174,8 +187,9 @@ kadi/                     (repo root)
 │       ├── Game/            (SoloGameView, SoloGameViewModel, Views/ phase overlays)
 │       ├── LAN/             (LAN multiplayer flow, Phase 4b)
 │       ├── Online/          (Online multiplayer flow, Phase 4c — Auth/, Views/)
-│       └── Social/          (Profile tab, Phase 4d-1/4d-2 — Profile/, Settings/,
-│                               Friends/, Leaderboard/)
+│       └── Social/          (Profile tab, Phase 4d-1/4d-2/4d-3 — Profile/, Settings/,
+│                               Friends/ (incl. FriendPickerSheet), Leaderboard/,
+│                               Messages/, Invites/)
 └── kadi.xcodeproj/
 ```
 
@@ -371,7 +385,7 @@ and renders the `points`/`wins`/`losses`/`gamesPlayed`/`quits` stats from
 `customStatus` via `PresenceService.observePresence`/`updatePresence`, and a "Sign Out"
 button calling `AuthViewModel.signOut()`); Friends/Messages/Game Invites/Leaderboard
 were disabled placeholders in this slice (Friends/Leaderboard wired up in Phase 4d-2,
-below; Messages/Game Invites remain deferred to Phase 4d-3). `Shared/Session/PresenceCoordinator`
+and Messages/Game Invites in Phase 4d-3, both below). `Shared/Session/PresenceCoordinator`
 (Phase 4d-1, owned by `kadiApp.swift`) bridges `AuthViewModel.authState` and
 `ScenePhase` to `PresenceService.goOnline`/`goOffline`: signing in (or foregrounding
 while signed in) calls `goOnline`, signing out (or backgrounding) calls `goOffline`.
@@ -402,6 +416,32 @@ share. `LeaderboardViewModel`/`LeaderboardView` is a simple `LeaderboardService(
 new `SocialHubViewModel` that subscribes to `observeIncomingFriendRequests(uid:)` purely
 to show a `PillBadge` request count next to "Friends"; "Messages"/"Game Invites" remain
 disabled placeholders for Phase 4d-3.
+
+`Features/Social/Messages/` and `Features/Social/Invites/` (Phase 4d-3) round out the
+"Profile" tab. `ConversationsViewModel` subscribes to
+`ConversationService().observeConversations(uid:)` and lazily resolves each
+conversation's other participant via `ProfileService().fetchProfile(uid:)`, caching the
+results in a `[String: UserProfile]` dictionary; `ConversationsListView` lists
+conversations (avatar, name, last-message preview, unread `PillBadge`) and a "New
+Message" button opens the new shared `Features/Social/Friends/FriendPickerSheet`
+(wrapping `FriendsViewModel`, used for picking a friend to message or invite). Both an
+existing conversation and a freshly-picked friend navigate to `ChatView` via
+`navigationDestination(item:)`. `ChatViewModel` subscribes to
+`ConversationService().observeMessages(convId:)` (`convId` from
+`ConversationService.conversationId(for:and:)`), calls `markRead` on start, and sends
+via `sendMessage` (catching `ConversationServiceError.messageTooLong`); `ChatView`
+renders messages as left/right bubbles. `GameInvitesViewModel` subscribes to
+`GameInviteService().observeIncomingInvites(uid:)`; `accept(_:authUser:)` calls
+`RoomService().joinRoom(roomId:uid:name:)` (using `PlayerIdentityStore().name`) and sets
+an `Identifiable` `joinedRoom` to drive `navigationDestination(item:)` →
+`OnlineGuestLobbyView`, then deletes the invite; `decline(_:)` just deletes it via
+`GameInviteService().deleteInvite(inviteId:)`. `OnlineHostLobbyViewModel` gained
+`sendInvite(to: Friend)` (`GameInviteService().sendInvite(fromUid:fromName:toUid:roomId:)`
+using `PlayerIdentityStore().name`), wired to a new "Invite Friend" button on
+`OnlineHostLobbyView` that presents `FriendPickerSheet`. `SocialHubViewModel` gained two
+more subscriptions (`observeConversations`/`observeIncomingInvites`) driving
+`unreadMessageCount`/`pendingInviteCount` `PillBadge`s on "Messages"/"Game Invites",
+which are now `NavigationLink`s like the other Social screens.
 
 ## Wire-format fidelity rule
 
@@ -443,11 +483,11 @@ wire format changes.
     `FriendsService`) and Leaderboard (`LeaderboardService`), surfaced from
     `SocialHubView`'s previously-disabled placeholders. See Status above and
     `docs/PHASE4D2_PLAN.md`.
-  - **Phase 4d-3 (not started)**: DM chat (`ConversationService`) and Game Invites
-    (`GameInviteService`) — both need a friend-picker (reusing `FriendsService
-    .observeFriends`) and, for invites, hooks into `OnlineHostLobbyView` to send an
-    invite and `OnlineRootView`/the online flow to accept one (join the room and
-    navigate to `OnlineGuestLobbyView`).
+  - **Phase 4d-3 (done)**: DM chat (`ConversationService`, `Features/Social/Messages/`)
+    and Game Invites (`GameInviteService`, `Features/Social/Invites/`), with a shared
+    `FriendPickerSheet` and an "Invite Friend" button on `OnlineHostLobbyView` that
+    accepts by joining the room and navigating to `OnlineGuestLobbyView`. See Status
+    above and `docs/PHASE4D3_PLAN.md`.
 - **Phase 5 — Admin app**: separate SwiftUI (macOS/iPadOS) project for campaign management,
   sharing the same Firebase project (`kadi-ios`).
 - **Phase 6 — Cloud Functions**: remain TypeScript (region `europe-west1`), same

@@ -6,9 +6,9 @@
 import SwiftUI
 import KadiOnline
 
-/// "Profile" hub: links to `ProfileView`/`SettingsView` (Phase 4d-1) and
-/// `FriendsView`/`LeaderboardView` (Phase 4d-2). Messages and Game Invites are
-/// placeholders for Phase 4d-3.
+/// "Profile" hub: links to `ProfileView`/`SettingsView` (Phase 4d-1),
+/// `FriendsView`/`LeaderboardView` (Phase 4d-2), and
+/// `ConversationsListView`/`GameInvitesView` (Phase 4d-3).
 struct SocialHubView: View {
     let authUser: AuthUser
 
@@ -47,15 +47,29 @@ struct SocialHubView: View {
                 }
                 .buttonStyle(SecondaryButtonStyle())
 
-                Button("Messages") {}
-                    .buttonStyle(SecondaryButtonStyle())
-                    .disabled(true)
-                    .opacity(0.4)
+                NavigationLink {
+                    ConversationsListView(authUser: authUser)
+                } label: {
+                    HStack {
+                        Text("Messages")
+                        if viewModel.unreadMessageCount > 0 {
+                            PillBadge(text: "\(viewModel.unreadMessageCount)", tint: KadiTheme.Colors.warning)
+                        }
+                    }
+                }
+                .buttonStyle(SecondaryButtonStyle())
 
-                Button("Game Invites") {}
-                    .buttonStyle(SecondaryButtonStyle())
-                    .disabled(true)
-                    .opacity(0.4)
+                NavigationLink {
+                    GameInvitesView(authUser: authUser)
+                } label: {
+                    HStack {
+                        Text("Game Invites")
+                        if viewModel.pendingInviteCount > 0 {
+                            PillBadge(text: "\(viewModel.pendingInviteCount)", tint: KadiTheme.Colors.warning)
+                        }
+                    }
+                }
+                .buttonStyle(SecondaryButtonStyle())
 
                 NavigationLink {
                     LeaderboardView(authUser: authUser)

@@ -10,6 +10,7 @@ import KadiOnline
 /// sharing, the live roster, and a "Start Game" button once at least one guest has joined.
 struct OnlineHostLobbyView: View {
     @StateObject private var viewModel: OnlineHostLobbyViewModel
+    @State private var showingFriendPicker = false
 
     init(roomId: String, authUser: AuthUser) {
         _viewModel = StateObject(wrappedValue: OnlineHostLobbyViewModel(roomId: roomId, authUser: authUser))
@@ -59,6 +60,11 @@ struct OnlineHostLobbyView: View {
                     .font(KadiTheme.Typography.callout)
                     .foregroundStyle(KadiTheme.Colors.textSecondary)
 
+                Button("Invite Friend") {
+                    showingFriendPicker = true
+                }
+                .buttonStyle(SecondaryButtonStyle())
+
                 Button("Start Game") {
                     viewModel.startGame()
                 }
@@ -70,6 +76,11 @@ struct OnlineHostLobbyView: View {
         .navigationTitle("Lobby")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(viewModel.didStartGame)
+        .sheet(isPresented: $showingFriendPicker) {
+            FriendPickerSheet(authUser: viewModel.authUser) { friend in
+                Task { await viewModel.sendInvite(to: friend) }
+            }
+        }
         .onAppear { viewModel.start() }
         .onDisappear {
             if !viewModel.didStartGame {
