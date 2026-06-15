@@ -67,4 +67,22 @@ final class ProfileServiceTests: EmulatorTestCase {
         let data = try XCTUnwrap(doc.data())
         XCTAssertNil(data["email"])
     }
+
+    func testRegisterAndUnregisterFCMToken() async throws {
+        let service = ProfileService()
+        let uid = UUID().uuidString
+
+        try await service.ensureProfile(uid: uid, displayName: "Carol", email: "carol@example.com", avatarId: 0)
+
+        try await service.registerFCMToken(uid: uid, token: "token-a")
+        try await service.registerFCMToken(uid: uid, token: "token-b")
+
+        var profile = try await service.fetchProfile(uid: uid)
+        XCTAssertEqual(Set(profile?.fcmTokens ?? []), ["token-a", "token-b"])
+
+        try await service.unregisterFCMToken(uid: uid, token: "token-a")
+
+        profile = try await service.fetchProfile(uid: uid)
+        XCTAssertEqual(profile?.fcmTokens, ["token-b"])
+    }
 }

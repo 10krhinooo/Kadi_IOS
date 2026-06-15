@@ -5,6 +5,9 @@
   "database": {
     "rules": "database.test.rules.json"
   },
+  "functions": {
+    "source": "functions"
+  },
   "emulators": {
     "firestore": {
       "port": 8089
@@ -14,6 +17,9 @@
     },
     "database": {
       "port": 9000
+    },
+    "functions": {
+      "port": 5001
     },
     "ui": {
       "enabled": false

@@ -49,4 +49,21 @@ public struct ProfileService: Sendable {
         let snapshot = try await db.collection("users").document(uid).getDocument()
         return try snapshot.data(as: UserProfile?.self)
     }
+
+    /// Adds `token` to `/users/{uid}.fcmTokens`, for Cloud Functions push delivery
+    /// (Phase 6, docs/GAME_SPEC.md §L).
+    public func registerFCMToken(uid: String, token: String) async throws {
+        try await db.collection("users").document(uid).setData(
+            ["fcmTokens": FieldValue.arrayUnion([token])],
+            merge: true
+        )
+    }
+
+    /// Removes `token` from `/users/{uid}.fcmTokens`, e.g. on sign-out.
+    public func unregisterFCMToken(uid: String, token: String) async throws {
+        try await db.collection("users").document(uid).setData(
+            ["fcmTokens": FieldValue.arrayRemove([token])],
+            merge: true
+        )
+    }
 }

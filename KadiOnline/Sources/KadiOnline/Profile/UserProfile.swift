@@ -18,6 +18,7 @@ public struct UserProfile: Codable, Equatable, Sendable {
     public var quits: Int
     public var lastSeen: Date?
     public var createdAt: Date?
+    public var fcmTokens: [String]
 
     public init(
         uid: String,
@@ -31,7 +32,8 @@ public struct UserProfile: Codable, Equatable, Sendable {
         gamesPlayed: Int = 0,
         quits: Int = 0,
         lastSeen: Date? = nil,
-        createdAt: Date? = nil
+        createdAt: Date? = nil,
+        fcmTokens: [String] = []
     ) {
         self.uid = uid
         self.displayName = displayName
@@ -45,5 +47,23 @@ public struct UserProfile: Codable, Equatable, Sendable {
         self.quits = quits
         self.lastSeen = lastSeen
         self.createdAt = createdAt
+        self.fcmTokens = fcmTokens
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        uid = try container.decode(String.self, forKey: .uid)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        displayNameLower = try container.decode(String.self, forKey: .displayNameLower)
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        avatarId = try container.decode(Int.self, forKey: .avatarId)
+        points = try container.decode(Int.self, forKey: .points)
+        wins = try container.decode(Int.self, forKey: .wins)
+        losses = try container.decode(Int.self, forKey: .losses)
+        gamesPlayed = try container.decode(Int.self, forKey: .gamesPlayed)
+        quits = try container.decode(Int.self, forKey: .quits)
+        lastSeen = try container.decodeIfPresent(Date.self, forKey: .lastSeen)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        fcmTokens = try container.decodeIfPresent([String].self, forKey: .fcmTokens) ?? []
     }
 }

@@ -13,6 +13,7 @@
 		DDC1906732F04E98AFE5C713 /* KadiOnline in Frameworks */ = {isa = PBXBuildFile; productRef = C270197C2EB7474FA3441BCB /* KadiOnline */; };
 		E12BD333379C43E48B73DB0F /* KadiEngine in Frameworks */ = {isa = PBXBuildFile; productRef = B7E3BF7178684A7B91705F3E /* KadiEngine */; };
 		F59660F4A9794FC2A22F64C8 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 05FED3AFC22D4BB68A9646F1 /* GoogleSignIn */; };
+		FE01A2B3C4D5E6F708192A3C /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = FE01A2B3C4D5E6F708192A3B /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 				B400FA48E2FA0B37D49F736F /* KadiNetworking in Frameworks */,
 				DDC1906732F04E98AFE5C713 /* KadiOnline in Frameworks */,
 				79AE7D994E014DC5B8A697CD /* FirebaseCore in Frameworks */,
+				FE01A2B3C4D5E6F708192A3C /* FirebaseMessaging in Frameworks */,
 				F59660F4A9794FC2A22F64C8 /* GoogleSignIn in Frameworks */,
 				7038B733834244BFA090348A /* GoogleSignInSwift in Frameworks */,
 			);
@@ -84,6 +86,7 @@
 				66751D6FA0B110916C2818D6 /* KadiNetworking */,
 				C270197C2EB7474FA3441BCB /* KadiOnline */,
 				7AE9325FCB6949D69B086B57 /* FirebaseCore */,
+				FE01A2B3C4D5E6F708192A3B /* FirebaseMessaging */,
 				05FED3AFC22D4BB68A9646F1 /* GoogleSignIn */,
 				0A3B24B0D0164CDC9C36ABC4 /* GoogleSignInSwift */,
 			);
@@ -272,6 +275,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = kadi/kadi.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
@@ -283,6 +287,7 @@
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
@@ -315,6 +320,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = kadi/kadi.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
@@ -326,6 +332,7 @@
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
@@ -437,6 +444,11 @@
 		C270197C2EB7474FA3441BCB /* KadiOnline */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = KadiOnline;
+		};
+		FE01A2B3C4D5E6F708192A3B /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8D6E3A5EFBC74EF2931A3846 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -118,7 +118,32 @@ admin panel, Cloud Functions). The full rules and wire-format contract are docum
   now `NavigationLink`s with `PillBadge` unread/pending counts via extended
   `SocialHubViewModel`. No `KadiOnline` package changes were needed. See
   `docs/PHASE4D3_PLAN.md`.
-- **Phase 5, 6 (not started)**: see Roadmap below.
+- **Phase 6 (done)**: Cloud Functions (`functions/`, TypeScript, Node 20,
+  `firebase-functions` v2, region `europe-west1`) + FCM push notifications.
+  Three Firestore `onDocumentCreated` triggers — `onFriendRequestCreated`,
+  `onGameInviteCreated`, `onDmMessageCreated` — call `sendPushToUser` (
+  `functions/src/push.ts`), which reads `/users/{uid}.fcmTokens` and calls
+  `admin.messaging().sendEachForMulticast`, removing any token FCM reports as
+  `messaging/registration-token-not-registered`. `onCampaignCreated`/
+  `processCampaigns` remain deferred to Phase 5 (depend on `/campaigns`).
+  `KadiOnline` gained `UserProfile.fcmTokens: [String]` (decoded via
+  `decodeIfPresent(...) ?? []` for backward compatibility) and
+  `ProfileService.registerFCMToken`/`unregisterFCMToken`
+  (`FieldValue.arrayUnion`/`arrayRemove`), plus the `FirebaseMessaging` SPM
+  product. New `kadi/Shared/Push/`: `PushTokenStore` (`ObservableObject`
+  bridging `MessagingDelegate` to SwiftUI), `AppDelegate`
+  (`UIApplicationDelegate`/`UNUserNotificationCenterDelegate`/
+  `MessagingDelegate` — requests notification authorization, registers for
+  remote notifications, forwards the FCM token to `PushTokenStore`), and
+  `PushNotificationCoordinator` (mirrors `PresenceCoordinator`; registers/
+  unregisters the device's FCM token on `/users/{uid}` as
+  `AuthViewModel.authState` changes), wired into `kadiApp.swift` via
+  `@UIApplicationDelegateAdaptor`. New `kadi/kadi.entitlements`
+  (`aps-environment`) + `INFOPLIST_KEY_UIBackgroundModes =
+  "remote-notification"` on the `kadi` target. See `docs/PHASE6_PLAN.md` for
+  the manual Firebase Console/Apple Developer/deploy steps required to
+  actually receive pushes on a device.
+- **Phase 5 (not started)**: see Roadmap below.
 
 ## Project layout
 
@@ -135,7 +160,8 @@ kadi/                     (repo root)
 │   ├── PHASE4C_PLAN.md    (approved plan for Phase 4c, preserved for history)
 │   ├── PHASE4D1_PLAN.md   (approved plan for Phase 4d-1, preserved for history)
 │   ├── PHASE4D2_PLAN.md   (approved plan for Phase 4d-2, preserved for history)
-│   └── PHASE4D3_PLAN.md   (approved plan for Phase 4d-3, preserved for history)
+│   ├── PHASE4D3_PLAN.md   (approved plan for Phase 4d-3, preserved for history)
+│   └── PHASE6_PLAN.md     (approved plan for Phase 6, preserved for history)
 ├── KadiEngine/            (local Swift package — pure logic, no UIKit/SwiftUI/Firebase deps)
 │   ├── Package.swift
 │   ├── Sources/KadiEngine/
@@ -168,13 +194,19 @@ kadi/                     (repo root)
 │   │   ├── Presence/        (PresenceModels, PresenceService — RTDB /presence/{uid})
 │   │   └── QuickChat/       (QuickChatModels, QuickChatService — RTDB /quickChat/{roomId}/{uid})
 │   └── Tests/KadiOnlineTests/  (incl. EmulatorTestCase + Firebase emulator-backed tests)
-├── firebase.json          (Firebase Local Emulator Suite config — Firestore + Auth + RTDB)
+├── functions/             (Cloud Functions — TypeScript, Node 20, firebase-functions v2, Phase 6)
+│   ├── package.json / tsconfig.json / jest.config.js
+│   └── src/
+│       ├── index.ts        (onFriendRequestCreated/onGameInviteCreated/onDmMessageCreated triggers)
+│       └── push.ts          (sendPushToUser — FCM multicast + stale-token cleanup)
+├── firebase.json          (Firebase Local Emulator Suite config — Firestore + Auth + RTDB + Functions)
 ├── firestore.rules        (production Firestore security rules)
 ├── firestore.test.rules   (relaxed rules for emulator-driven tests)
 ├── database.rules.json    (production Realtime Database security rules)
 ├── database.test.rules.json (relaxed RTDB rules for emulator-driven tests)
 ├── kadi/                  (SwiftUI app target — depends on KadiEngine/KadiNetworking/KadiOnline + Firebase/GoogleSignIn SPM deps)
 │   ├── kadiApp.swift       (entry point; FirebaseBootstrap.configure() + HomeView)
+│   ├── kadi.entitlements   (aps-environment, Phase 6)
 │   ├── GoogleService-Info.plist (Firebase config for project kadi-ios)
 │   ├── Theme/              (KadiTheme: colors, typography, layout constants)
 │   ├── Shared/Components/  (PlayingCardView, PrimaryButton styles, PillBadge,
@@ -182,6 +214,7 @@ kadi/                     (repo root)
 │   ├── Shared/Persistence/ (PlayerIdentityStore)
 │   ├── Shared/Auth/        (AuthViewModel — app-wide auth session, Phase 4d-1)
 │   ├── Shared/Session/     (PresenceCoordinator, Phase 4d-1)
+│   ├── Shared/Push/        (PushTokenStore, AppDelegate, PushNotificationCoordinator, Phase 6)
 │   └── Features/
 │       ├── Home/           (HomeView, SoloSetupView)
 │       ├── Game/            (SoloGameView, SoloGameViewModel, Views/ phase overlays)
@@ -443,6 +476,39 @@ more subscriptions (`observeConversations`/`observeIncomingInvites`) driving
 `unreadMessageCount`/`pendingInviteCount` `PillBadge`s on "Messages"/"Game Invites",
 which are now `NavigationLink`s like the other Social screens.
 
+Phase 6 adds Cloud Functions + FCM push notifications. `UserProfile.fcmTokens:
+[String]` (default `[]`, decoded via `decodeIfPresent(...) ?? []` for documents
+written before this phase) and two new `ProfileService` methods,
+`registerFCMToken(uid:token:)`/`unregisterFCMToken(uid:token:)`, manage
+`/users/{uid}.fcmTokens` via `FieldValue.arrayUnion`/`arrayRemove`;
+`ensureProfile`'s `merge: true` writes never touch this field. On the iOS side,
+`kadi/Shared/Push/AppDelegate` (`UIApplicationDelegate`/
+`UNUserNotificationCenterDelegate`/`MessagingDelegate`, installed via
+`@UIApplicationDelegateAdaptor` in `kadiApp.swift`) requests notification
+authorization, registers for remote notifications, and forwards both the APNs
+device token (to `Messaging.messaging().apnsToken`) and FCM registration token
+updates (to `PushTokenStore.shared.fcmToken`, an `ObservableObject` SwiftUI can
+observe). `PushNotificationCoordinator` (mirroring `PresenceCoordinator`)
+calls `registerFCMToken`/`unregisterFCMToken` as `AuthViewModel.authState` and
+`PushTokenStore.fcmToken` change, deduplicating on the last-registered token.
+`kadi/kadi.entitlements` (`aps-environment`) and
+`INFOPLIST_KEY_UIBackgroundModes = "remote-notification"` on the `kadi` target
+enable receiving pushes on a real device (not supported in the Simulator).
+
+The new top-level `functions/` package (TypeScript, Node 20,
+`firebase-functions`/`firebase-admin` v2, region `europe-west1`) hosts three
+Firestore `onDocumentCreated` triggers — `onFriendRequestCreated`
+(`/friendRequests/{id}`), `onGameInviteCreated` (`/gameInvites/{id}`), and
+`onDmMessageCreated` (`/conversations/{convId}/messages/{id}`, where
+`recipientUid` is derived from `convId.split('_')` and the sender's
+`displayName` is looked up from `/users/{senderUid}`) — each calling
+`sendPushToUser(uid, notification, data)` from `functions/src/push.ts`.
+`sendPushToUser` reads `/users/{uid}.fcmTokens`, calls
+`admin.messaging().sendEachForMulticast`, and removes any token FCM reports as
+`messaging/registration-token-not-registered` via `FieldValue.arrayRemove`.
+`onCampaignCreated`/`processCampaigns` remain deferred to Phase 5 (they depend
+on the `/campaigns` collection the Admin app introduces).
+
 ## Wire-format fidelity rule
 
 Any change to `Models/`, `Actions/GameAction.swift`, or any `Codable` conformance MUST keep
@@ -489,12 +555,12 @@ wire format changes.
     accepts by joining the room and navigating to `OnlineGuestLobbyView`. See Status
     above and `docs/PHASE4D3_PLAN.md`.
 - **Phase 5 — Admin app**: separate SwiftUI (macOS/iPadOS) project for campaign management,
-  sharing the same Firebase project (`kadi-ios`).
-- **Phase 6 — Cloud Functions**: remain TypeScript (region `europe-west1`), same
-  triggers — `onGameInviteCreated`, `onFriendRequestCreated`, `onDmMessageCreated`,
-  `onCampaignCreated`/`processCampaigns` — plus FCM push token registration/delivery
-  (deferred from Phase 3c), since token registration is only useful once these triggers
-  exist to consume it.
+  sharing the same Firebase project (`kadi-ios`). Will also add the
+  `onCampaignCreated`/`processCampaigns` Cloud Functions triggers (deferred
+  from Phase 6, since they depend on the `/campaigns` collection this phase
+  introduces).
+- **Phase 6 — Cloud Functions + FCM push (done)**: see Status above and
+  `docs/PHASE6_PLAN.md`.
 
 ### Open questions for later phases
 
