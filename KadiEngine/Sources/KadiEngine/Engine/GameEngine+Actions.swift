@@ -79,10 +79,13 @@ extension GameEngine {
 
     static func applyChooseSuit(_ state: GameState, suit: Suit) -> GameState {
         var newState = state
-        newState.phase = newState.preSuitChoicePhase ?? .playing
+        let restoredPhase = newState.preSuitChoicePhase ?? .playing
         newState.forcedSuit = suit
         newState.preSuitChoicePhase = nil
+        // `advanceTurn` unconditionally resets `phase = .playing`, so set the restored phase
+        // afterwards to make it stick (mirrors the `MakeDemand` workaround above).
         advanceTurn(&newState)
+        newState.phase = restoredPhase
         return newState
     }
 

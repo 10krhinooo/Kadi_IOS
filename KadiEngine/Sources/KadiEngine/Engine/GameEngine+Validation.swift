@@ -159,6 +159,7 @@ extension GameEngine {
     // MARK: - 9. RefuseSkip
 
     static func validateRefuseSkip(_ state: GameState, jack: PlayingCard) -> String? {
+        guard state.phase == .playing else { return "You can't refuse a skip right now." }
         guard state.currentPlayer.hand.contains(jack) else { return "You don't have that card." }
         guard jack.isSkipCard else { return "That's not a Jack." }
         return nil
@@ -167,6 +168,7 @@ extension GameEngine {
     // MARK: - 10. RefuseReverse
 
     static func validateRefuseReverse(_ state: GameState, king: PlayingCard) -> String? {
+        guard state.phase == .playing else { return "You can't refuse a reversal right now." }
         guard state.currentPlayer.hand.contains(king) else { return "You don't have that card." }
         guard king.isReverseCard else { return "That's not a King." }
         return nil

@@ -3,6 +3,7 @@ import Foundation
 
 public enum ConversationServiceError: Error, Equatable {
     case messageTooLong
+    case blocked
 }
 
 /// `/conversations/{convId}` DM conversations + messages, per docs/GAME_SPEC.md §L.
@@ -24,6 +25,17 @@ public struct ConversationService: Sendable {
         db.collection("conversations").document(convId)
     }
 
+    private func blockedRef(_ uid: String) -> CollectionReference {
+        db.collection("blocks").document(uid).collection("blocked")
+    }
+
+    /// Returns whether either party has blocked the other.
+    private func isBlocked(senderUid: String, recipientUid: String) async throws -> Bool {
+        let recipientBlockedSender = try await blockedRef(recipientUid).document(senderUid).getDocument().exists
+        let senderBlockedRecipient = try await blockedRef(senderUid).document(recipientUid).getDocument().exists
+        return recipientBlockedSender || senderBlockedRecipient
+    }
+
     /// Appends a message and updates the conversation doc (`participants`,
     /// `lastMessage`, `updatedAt`, and `unreadCounts.{recipientUid}` incremented by 1)
     /// in a single batch. Throws `.messageTooLong` if `text` exceeds
@@ -31,6 +43,9 @@ public struct ConversationService: Sendable {
     public func sendMessage(senderUid: String, recipientUid: String, text: String) async throws {
         guard text.count <= Self.maxMessageLength else {
             throw ConversationServiceError.messageTooLong
+        }
+        guard try await !isBlocked(senderUid: senderUid, recipientUid: recipientUid) else {
+            throw ConversationServiceError.blocked
         }
 
         let convId = Self.conversationId(for: senderUid, and: recipientUid)
@@ -99,8 +114,9 @@ public struct ConversationService: Sendable {
         }
     }
 
-    /// Resets `unreadCounts.{uid}` to `0` on `/conversations/{convId}`.
+    /// Resets `unreadCounts.{uid}` to `0` on `/conversations/{convId}`. Uses a merge-set
+    /// (rather than `updateData`) so this is a no-op if the conversation doc doesn't exist yet.
     public func markRead(convId: String, uid: String) async throws {
-        try await conversationRef(convId).updateData(["unreadCounts.\(uid)": 0])
+        try await conversationRef(convId).setData(["unreadCounts": [uid: 0]], merge: true)
     }
 }

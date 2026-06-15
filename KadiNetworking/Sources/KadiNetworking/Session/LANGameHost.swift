@@ -344,9 +344,13 @@ public actor LANGameHost {
     }
 
     private func broadcast(_ message: NetworkMessage, excludingUid: String? = nil) async {
-        for player in players where player.uid != excludingUid {
-            guard let connection = player.connection else { continue }
-            try? await connection.send(message)
+        await withTaskGroup(of: Void.self) { group in
+            for player in players where player.uid != excludingUid {
+                guard let connection = player.connection else { continue }
+                group.addTask {
+                    try? await connection.send(message)
+                }
+            }
         }
     }
 

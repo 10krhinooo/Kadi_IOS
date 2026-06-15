@@ -49,11 +49,19 @@ public struct PresenceService: Sendable {
     }
 
     /// Updates the subset of presence fields that changed (e.g. entering/leaving a
-    /// room mid-session). Only non-nil parameters are written.
-    public func updatePresence(uid: String, inGame: Bool? = nil, roomId: String? = nil, customStatus: String? = nil) async throws {
+    /// room mid-session). Only non-nil parameters are written. Pass `clearRoomId: true`
+    /// to clear a previously-set `roomId` back to null (e.g. when leaving a room);
+    /// `roomId` itself is otherwise only written when non-nil.
+    public func updatePresence(
+        uid: String,
+        inGame: Bool? = nil,
+        roomId: String? = nil,
+        clearRoomId: Bool = false,
+        customStatus: String? = nil
+    ) async throws {
         var values: [String: Any] = [:]
         if let inGame { values["inGame"] = inGame }
-        if let roomId { values["roomId"] = roomId }
+        if let roomId { values["roomId"] = roomId } else if clearRoomId { values["roomId"] = NSNull() }
         if let customStatus { values["customStatus"] = customStatus }
         guard !values.isEmpty else { return }
         try await updateChildValues(values, on: presenceRef(uid))

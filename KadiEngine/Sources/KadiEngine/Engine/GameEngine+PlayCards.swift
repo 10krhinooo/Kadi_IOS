@@ -49,12 +49,13 @@ extension GameEngine {
 
         // Step 4: last played card is a ruled draw card.
         if isRuledDrawCard(lastCard, rules: newState.rules) {
+            let chainDrawValue = cards
+                .filter { isRuledDrawCard($0, rules: newState.rules) }
+                .reduce(0) { $0 + $1.drawValue }
             if newState.isDrawStackActive {
-                newState.pendingDrawCount += lastCard.drawValue
+                newState.pendingDrawCount += chainDrawValue
             } else {
-                newState.pendingDrawCount = cards
-                    .filter { isRuledDrawCard($0, rules: newState.rules) }
-                    .reduce(0) { $0 + $1.drawValue }
+                newState.pendingDrawCount = chainDrawValue
             }
             if newState.rules.drawStackCap > 0 {
                 newState.pendingDrawCount = min(newState.pendingDrawCount, newState.rules.drawStackCap)
@@ -119,7 +120,8 @@ extension GameEngine {
         // Step 11: last card is a Jack (skip).
         if lastCard.isSkipCard {
             let n = newState.players.count
-            let skipCount = (newState.rules.jackStackable && cards.count > 1) ? cards.count : 1
+            let jackCount = cards.filter(\.isSkipCard).count
+            let skipCount = (newState.rules.jackStackable && jackCount > 1) ? jackCount : 1
             let step = newState.direction.step
             newState.currentPlayerIndex = ((playerIndex + step * (skipCount + 1)) % n + n) % n
             newState.phase = .playing

@@ -228,6 +228,14 @@ final class LANGameViewModel: ObservableObject {
     // MARK: - Host migration
 
     private func handleHostLost(client: LANGameClient) async {
+        // Stagger promotion checks by seat index so that, when multiple clients lose the
+        // host near-simultaneously, lower-indexed seats are more likely to have already
+        // promoted (and relayed playerDisconnected updates) before higher-indexed seats
+        // evaluate isLowestSurvivingPlayerIndex — reducing (not eliminating) the chance of
+        // two clients both promoting to host.
+        if let myIndex = await client.currentPlayerIndex, myIndex > 1 {
+            try? await Task.sleep(for: .seconds(Double(myIndex - 1) * 0.5))
+        }
         if await client.isLowestSurvivingPlayerIndex() {
             migrationState = .hostLostPromoting
             migrationMessage = "Taking over as host…"

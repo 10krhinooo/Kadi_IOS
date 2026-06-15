@@ -27,6 +27,8 @@ public actor LANGameClient {
     private var disconnectedPlayerIndices: Set<Int> = []
     private var gameState: GameState?
 
+    private var connectionLost = false
+
     private var stateContinuations: [AsyncStream<GameState>.Continuation] = []
     private var rosterContinuations: [AsyncStream<[Player]>.Continuation] = []
     private var chatContinuations: [AsyncStream<ChatPayload>.Continuation] = []
@@ -160,6 +162,8 @@ public actor LANGameClient {
     }
 
     private func handleConnectionLost() async {
+        guard !connectionLost else { return }
+        connectionLost = true
         pingWatchdogTask?.cancel()
         await connection.close()
         for continuation in hostLostContinuations {
@@ -212,6 +216,7 @@ public actor LANGameClient {
         pingWatchdogTask?.cancel()
         connection = newConnection
         lastPingReceived = Date()
+        connectionLost = false
         beginReceiveLoop()
         startPingWatchdog()
     }

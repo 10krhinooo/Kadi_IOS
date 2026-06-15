@@ -4,6 +4,7 @@ import Foundation
 public enum FriendsServiceError: Error, Equatable {
     case requestAlreadyPending
     case requestNotFound
+    case blocked
 }
 
 /// Friends list, friend requests, and blocks, per docs/GAME_SPEC.md §L.
@@ -92,6 +93,13 @@ public struct FriendsService: Sendable {
             throw FriendsServiceError.requestNotFound
         }
 
+        if try await isBlocked(fromUid, by: toUid) {
+            throw FriendsServiceError.blocked
+        }
+        if try await isBlocked(toUid, by: fromUid) {
+            throw FriendsServiceError.blocked
+        }
+
         let toProfileSnapshot = try await db.collection("users").document(toUid).getDocument()
         let toName = toProfileSnapshot.data()?["displayName"] as? String ?? fromName
         let toAvatarId = toProfileSnapshot.data()?["avatarId"] as? Int ?? fromAvatarId
@@ -171,6 +179,11 @@ public struct FriendsService: Sendable {
     }
 
     // MARK: - Blocks
+
+    /// Returns whether `uid` has blocked `targetUid` (`/blocks/{uid}/blocked/{targetUid}` exists).
+    public func isBlocked(_ targetUid: String, by uid: String) async throws -> Bool {
+        try await blockedRef(uid).document(targetUid).getDocument().exists
+    }
 
     /// Sets `/blocks/{uid}/blocked/{targetUid}`.
     public func blockUser(uid: String, targetUid: String) async throws {
