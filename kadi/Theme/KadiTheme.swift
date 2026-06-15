@@ -33,15 +33,19 @@ enum KadiTheme {
     }
 
     enum Typography {
-        static let largeTitle    = Font.system(size: 34, weight: .bold, design: .rounded)
-        static let title         = Font.system(size: 26, weight: .bold, design: .rounded)
-        static let headline      = Font.system(size: 20, weight: .semibold, design: .rounded)
-        static let body          = Font.system(size: 16, weight: .regular)
-        static let callout       = Font.system(size: 14, weight: .medium)
-        static let caption       = Font.system(size: 12, weight: .regular)
+        // Scalable with Dynamic Type, since these render in flexible layout containers.
+        static let largeTitle    = Font.system(.largeTitle, design: .rounded).weight(.bold)
+        static let title         = Font.system(.title, design: .rounded).weight(.bold)
+        static let headline      = Font.system(.title3, design: .rounded).weight(.semibold)
+        static let body          = Font.system(.body)
+        static let callout       = Font.system(.subheadline).weight(.medium)
+        static let caption       = Font.system(.caption)
+        static let buttonLabel   = Font.system(.body, design: .rounded).weight(.semibold)
+
+        // Fixed sizes: render inside fixed-size card frames (`Layout.cardWidth`/`cardHeight`
+        // etc.), where Dynamic Type scaling would risk clipping.
         static let cardRank      = Font.system(size: 20, weight: .bold, design: .rounded)
         static let cardRankSmall = Font.system(size: 13, weight: .bold, design: .rounded)
-        static let buttonLabel   = Font.system(size: 17, weight: .semibold, design: .rounded)
     }
 
     enum Layout {

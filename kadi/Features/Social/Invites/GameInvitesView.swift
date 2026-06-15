@@ -17,7 +17,10 @@ struct GameInvitesView: View {
         ZStack {
             KadiTheme.backgroundGradient.ignoresSafeArea()
 
-            if viewModel.invites.isEmpty {
+            if viewModel.isLoading {
+                ProgressView()
+                    .tint(KadiTheme.Colors.accent)
+            } else if viewModel.invites.isEmpty {
                 Text("No pending game invites.")
                     .font(KadiTheme.Typography.body)
                     .foregroundStyle(KadiTheme.Colors.textSecondary)

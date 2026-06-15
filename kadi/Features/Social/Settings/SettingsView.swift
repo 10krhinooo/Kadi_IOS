@@ -13,6 +13,7 @@ struct SettingsView: View {
 
     @EnvironmentObject private var authViewModel: AuthViewModel
     @StateObject private var viewModel = SettingsViewModel()
+    @State private var isConfirmingSignOut = false
 
     var body: some View {
         ZStack {
@@ -29,7 +30,7 @@ struct SettingsView: View {
                         .foregroundStyle(KadiTheme.Colors.textSecondary)
 
                     Button("Sign Out") {
-                        authViewModel.signOut()
+                        isConfirmingSignOut = true
                     }
                     .buttonStyle(SecondaryButtonStyle())
                 }
@@ -70,6 +71,12 @@ struct SettingsView: View {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             Text(viewModel.errorMessage ?? "")
+        }
+        .alert("Sign Out?", isPresented: $isConfirmingSignOut) {
+            Button("Sign Out", role: .destructive) { authViewModel.signOut() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You'll need to sign in again to access your account.")
         }
     }
 }

@@ -16,6 +16,7 @@ struct ProfileView: View {
     let authUser: AuthUser
 
     @StateObject private var viewModel = ProfileViewModel()
+    @State private var didCopyUid = false
 
     var body: some View {
         ZStack {
@@ -120,10 +121,16 @@ struct ProfileView: View {
                     #if canImport(UIKit)
                     UIPasteboard.general.string = authUser.uid
                     #endif
+                    didCopyUid = true
+                    Task {
+                        try? await Task.sleep(for: .seconds(2))
+                        didCopyUid = false
+                    }
                 } label: {
-                    Image(systemName: "doc.on.doc")
+                    Image(systemName: didCopyUid ? "checkmark" : "doc.on.doc")
                 }
                 .buttonStyle(SecondaryButtonStyle())
+                .accessibilityLabel(didCopyUid ? "Copied" : "Copy ID")
             }
             .padding(KadiTheme.Layout.spacingM)
             .background(KadiTheme.Colors.surface)

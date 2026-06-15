@@ -10,6 +10,7 @@ import KadiOnline
 @MainActor
 final class GameInvitesViewModel: ObservableObject {
     @Published private(set) var invites: [GameInvite] = []
+    @Published private(set) var isLoading = true
     @Published var joinedRoom: JoinedRoom?
     @Published var isWorking = false
     @Published var errorMessage: String?
@@ -37,8 +38,10 @@ final class GameInvitesViewModel: ObservableObject {
             do {
                 for try await invites in self.gameInviteService.observeIncomingInvites(uid: authUser.uid) {
                     self.invites = invites
+                    self.isLoading = false
                 }
             } catch {
+                self.isLoading = false
                 self.errorMessage = error.localizedDescription
             }
         }

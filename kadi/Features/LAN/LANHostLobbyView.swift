@@ -46,12 +46,6 @@ struct LANHostLobbyView: View {
                         .fill(KadiTheme.Colors.surface.opacity(0.5))
                 )
 
-                if let errorMessage = viewModel.errorMessage {
-                    Text(errorMessage)
-                        .font(KadiTheme.Typography.callout)
-                        .foregroundStyle(KadiTheme.Colors.warning)
-                }
-
                 Spacer()
 
                 Text(viewModel.canStartGame ? "Ready to start" : "Waiting for at least one more player…")
@@ -84,6 +78,14 @@ struct LANHostLobbyView: View {
                     gameName: viewModel.gameName
                 )
             }
+        }
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
         }
     }
 }

@@ -34,6 +34,10 @@ struct QuestionAnswerBanner: View {
         .padding(.vertical, KadiTheme.Layout.spacingS)
         .background(KadiTheme.Colors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: KadiTheme.Layout.cornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: KadiTheme.Layout.cornerRadius)
+                .strokeBorder(KadiTheme.Colors.accent, lineWidth: 2)
+        )
         .padding(.horizontal, KadiTheme.Layout.spacingM)
     }
 }

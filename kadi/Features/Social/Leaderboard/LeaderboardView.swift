@@ -49,6 +49,11 @@ struct LeaderboardView: View {
             if viewModel.isLoading && viewModel.players.isEmpty {
                 ProgressView()
                     .tint(KadiTheme.Colors.accent)
+            } else if !viewModel.isLoading && viewModel.players.isEmpty {
+                Text("No players on the leaderboard yet.")
+                    .font(KadiTheme.Typography.body)
+                    .foregroundStyle(KadiTheme.Colors.textSecondary)
+                    .padding(KadiTheme.Layout.spacingL)
             }
         }
         .navigationTitle("Leaderboard")

@@ -12,6 +12,8 @@ struct FriendsView: View {
     let authUser: AuthUser
 
     @StateObject private var viewModel = FriendsViewModel()
+    @State private var friendPendingRemoval: Friend?
+    @State private var friendPendingBlock: Friend?
 
     var body: some View {
         ZStack {
@@ -49,6 +51,40 @@ struct FriendsView: View {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             Text(viewModel.errorMessage ?? "")
+        }
+        .confirmationDialog(
+            "Remove \(friendPendingRemoval?.displayName ?? "this friend")?",
+            isPresented: Binding(
+                get: { friendPendingRemoval != nil },
+                set: { if !$0 { friendPendingRemoval = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Remove Friend", role: .destructive) {
+                if let friend = friendPendingRemoval {
+                    Task { await viewModel.removeFriend(friend, authUser: authUser) }
+                }
+                friendPendingRemoval = nil
+            }
+            Button("Cancel", role: .cancel) { friendPendingRemoval = nil }
+        }
+        .confirmationDialog(
+            "Block \(friendPendingBlock?.displayName ?? "this friend")?",
+            isPresented: Binding(
+                get: { friendPendingBlock != nil },
+                set: { if !$0 { friendPendingBlock = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Block", role: .destructive) {
+                if let friend = friendPendingBlock {
+                    Task { await viewModel.block(friend, authUser: authUser) }
+                }
+                friendPendingBlock = nil
+            }
+            Button("Cancel", role: .cancel) { friendPendingBlock = nil }
+        } message: {
+            Text("They'll be removed from your friends and won't be able to send you requests or messages.")
         }
     }
 
@@ -133,10 +169,10 @@ struct FriendsView: View {
                         .clipShape(RoundedRectangle(cornerRadius: KadiTheme.Layout.cornerRadius))
                         .contextMenu {
                             Button("Remove Friend", role: .destructive) {
-                                Task { await viewModel.removeFriend(friend, authUser: authUser) }
+                                friendPendingRemoval = friend
                             }
                             Button("Block", role: .destructive) {
-                                Task { await viewModel.block(friend, authUser: authUser) }
+                                friendPendingBlock = friend
                             }
                         }
                     }

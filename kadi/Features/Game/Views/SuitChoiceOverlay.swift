@@ -19,6 +19,16 @@ private extension Suit {
     }
 
     var isRed: Bool { self == .hearts || self == .diamonds }
+
+    /// Human-readable name for accessibility labels.
+    var name: String {
+        switch self {
+        case .hearts: return "Hearts"
+        case .diamonds: return "Diamonds"
+        case .clubs: return "Clubs"
+        case .spades: return "Spades"
+        }
+    }
 }
 
 /// Shown when `phase == .suitChoice` and it's the human's turn — pick a suit after
@@ -40,6 +50,7 @@ struct SuitChoiceOverlay: View {
                             .background(KadiTheme.Colors.surfaceElevated)
                             .clipShape(RoundedRectangle(cornerRadius: KadiTheme.Layout.cornerRadius))
                     }
+                    .accessibilityLabel(suit.name)
                 }
             }
         }

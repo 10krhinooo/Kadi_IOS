@@ -22,6 +22,7 @@ struct ExitGameButton: ViewModifier {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(KadiTheme.Colors.textSecondary)
                     }
+                    .accessibilityLabel("Exit Game")
                 }
             }
             .alert("Exit Game?", isPresented: $isConfirming) {
