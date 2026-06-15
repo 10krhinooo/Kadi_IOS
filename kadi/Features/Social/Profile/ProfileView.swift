@@ -5,6 +5,9 @@
 
 import SwiftUI
 import KadiOnline
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Own-profile screen: edit display name/avatar (persisted via `PlayerIdentityStore`
 /// and `ProfileService.ensureProfile`, same convention as `OnlineSetupView`) and view
@@ -43,6 +46,8 @@ struct ProfileView: View {
                     if let profile = viewModel.profile {
                         statsSection(profile)
                     }
+
+                    yourIdSection
 
                     Button("Save") {
                         Task { await viewModel.save(authUser: authUser) }
@@ -85,6 +90,40 @@ struct ProfileView: View {
                 statRow("Losses", profile.losses)
                 statRow("Games Played", profile.gamesPlayed)
                 statRow("Quits", profile.quits)
+            }
+            .padding(KadiTheme.Layout.spacingM)
+            .background(KadiTheme.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: KadiTheme.Layout.cornerRadius))
+        }
+    }
+
+    private var yourIdSection: some View {
+        VStack(alignment: .leading, spacing: KadiTheme.Layout.spacingS) {
+            Text("Your ID")
+                .font(KadiTheme.Typography.headline)
+                .foregroundStyle(KadiTheme.Colors.textPrimary)
+
+            Text("Share this with friends so they can add you.")
+                .font(KadiTheme.Typography.caption)
+                .foregroundStyle(KadiTheme.Colors.textSecondary)
+
+            HStack {
+                Text(authUser.uid)
+                    .font(.system(.footnote, design: .monospaced))
+                    .foregroundStyle(KadiTheme.Colors.textPrimary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+
+                Spacer()
+
+                Button {
+                    #if canImport(UIKit)
+                    UIPasteboard.general.string = authUser.uid
+                    #endif
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                }
+                .buttonStyle(SecondaryButtonStyle())
             }
             .padding(KadiTheme.Layout.spacingM)
             .background(KadiTheme.Colors.surface)

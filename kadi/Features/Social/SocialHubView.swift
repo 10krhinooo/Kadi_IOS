@@ -6,10 +6,13 @@
 import SwiftUI
 import KadiOnline
 
-/// "Profile" hub: links to `ProfileView`/`SettingsView` (Phase 4d-1). Friends, Messages,
-/// Game Invites, and Leaderboard are placeholders for Phase 4d-2.
+/// "Profile" hub: links to `ProfileView`/`SettingsView` (Phase 4d-1) and
+/// `FriendsView`/`LeaderboardView` (Phase 4d-2). Messages and Game Invites are
+/// placeholders for Phase 4d-3.
 struct SocialHubView: View {
     let authUser: AuthUser
+
+    @StateObject private var viewModel = SocialHubViewModel()
 
     var body: some View {
         ZStack {
@@ -32,10 +35,17 @@ struct SocialHubView: View {
                 }
                 .buttonStyle(SecondaryButtonStyle())
 
-                Button("Friends") {}
-                    .buttonStyle(SecondaryButtonStyle())
-                    .disabled(true)
-                    .opacity(0.4)
+                NavigationLink {
+                    FriendsView(authUser: authUser)
+                } label: {
+                    HStack {
+                        Text("Friends")
+                        if viewModel.pendingRequestCount > 0 {
+                            PillBadge(text: "\(viewModel.pendingRequestCount)", tint: KadiTheme.Colors.warning)
+                        }
+                    }
+                }
+                .buttonStyle(SecondaryButtonStyle())
 
                 Button("Messages") {}
                     .buttonStyle(SecondaryButtonStyle())
@@ -47,10 +57,12 @@ struct SocialHubView: View {
                     .disabled(true)
                     .opacity(0.4)
 
-                Button("Leaderboard") {}
-                    .buttonStyle(SecondaryButtonStyle())
-                    .disabled(true)
-                    .opacity(0.4)
+                NavigationLink {
+                    LeaderboardView(authUser: authUser)
+                } label: {
+                    Text("Leaderboard")
+                }
+                .buttonStyle(SecondaryButtonStyle())
 
                 Spacer()
             }
@@ -58,5 +70,11 @@ struct SocialHubView: View {
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            viewModel.start(authUser: authUser)
+        }
+        .onDisappear {
+            viewModel.stop()
+        }
     }
 }

@@ -95,7 +95,18 @@ admin panel, Cloud Functions). The full rules and wire-format contract are docum
   `GIDSignIn.sharedInstance.configuration` from the Firebase app's `clientID` (fixing
   Google Sign-In). No `KadiEngine`/`KadiNetworking` changes. See
   `docs/PHASE4D1_PLAN.md`.
-- **Phase 4d-2, 5, 6 (not started)**: see Roadmap below.
+- **Phase 4d-2 (done)**: Friends + Leaderboard, the two `Features/Social/` screens that
+  don't need cross-feature wiring into `Features/Online/`. New
+  `Features/Social/Friends/FriendsView`/`FriendsViewModel` (friend requests/friends
+  list/blocks over `KadiOnline`'s `FriendsService`; friends are added by UID, no search)
+  and `Features/Social/Leaderboard/LeaderboardView`/`LeaderboardViewModel`
+  (`LeaderboardService.fetchTopPlayers`, current user's row highlighted).
+  `ProfileView` gained a "Your ID" row (copy-to-clipboard) so users can share their UID
+  to be added as a friend. `SocialHubView` now links to both screens and shows a
+  `PillBadge` pending-friend-request count via new `SocialHubViewModel`. "Messages"/
+  "Game Invites" remain disabled placeholders. No `KadiOnline` package changes were
+  needed. See `docs/PHASE4D2_PLAN.md`.
+- **Phase 4d-3, 5, 6 (not started)**: see Roadmap below.
 
 ## Project layout
 
@@ -110,7 +121,8 @@ kadi/                     (repo root)
 │   ├── PHASE4A_PLAN.md    (approved plan for Phase 4a, preserved for history)
 │   ├── PHASE4B_PLAN.md    (approved plan for Phase 4b, preserved for history)
 │   ├── PHASE4C_PLAN.md    (approved plan for Phase 4c, preserved for history)
-│   └── PHASE4D1_PLAN.md   (approved plan for Phase 4d-1, preserved for history)
+│   ├── PHASE4D1_PLAN.md   (approved plan for Phase 4d-1, preserved for history)
+│   └── PHASE4D2_PLAN.md   (approved plan for Phase 4d-2, preserved for history)
 ├── KadiEngine/            (local Swift package — pure logic, no UIKit/SwiftUI/Firebase deps)
 │   ├── Package.swift
 │   ├── Sources/KadiEngine/
@@ -162,7 +174,8 @@ kadi/                     (repo root)
 │       ├── Game/            (SoloGameView, SoloGameViewModel, Views/ phase overlays)
 │       ├── LAN/             (LAN multiplayer flow, Phase 4b)
 │       ├── Online/          (Online multiplayer flow, Phase 4c — Auth/, Views/)
-│       └── Social/          (Profile/Settings flow, Phase 4d-1 — Profile/, Settings/)
+│       └── Social/          (Profile tab, Phase 4d-1/4d-2 — Profile/, Settings/,
+│                               Friends/, Leaderboard/)
 └── kadi.xcodeproj/
 ```
 
@@ -357,7 +370,8 @@ and renders the `points`/`wins`/`losses`/`gamesPlayed`/`quits` stats from
 `UserProfile`) and `Settings/SettingsView` (`SettingsViewModel`: reads/writes
 `customStatus` via `PresenceService.observePresence`/`updatePresence`, and a "Sign Out"
 button calling `AuthViewModel.signOut()`); Friends/Messages/Game Invites/Leaderboard
-are disabled placeholders, deferred to Phase 4d-2. `Shared/Session/PresenceCoordinator`
+were disabled placeholders in this slice (Friends/Leaderboard wired up in Phase 4d-2,
+below; Messages/Game Invites remain deferred to Phase 4d-3). `Shared/Session/PresenceCoordinator`
 (Phase 4d-1, owned by `kadiApp.swift`) bridges `AuthViewModel.authState` and
 `ScenePhase` to `PresenceService.goOnline`/`goOffline`: signing in (or foregrounding
 while signed in) calls `goOnline`, signing out (or backgrounding) calls `goOffline`.
@@ -369,6 +383,25 @@ mid-game); `SuitChoiceOverlay` now renders SF Symbol suit icons
 `suitBlack`) instead of emoji glyphs; and `FirebaseBootstrap.configure()` now sets
 `GIDSignIn.sharedInstance.configuration` from `FirebaseApp.app()?.options.clientID`,
 fixing Google Sign-In (previously unconfigured).
+
+`Features/Social/Friends/` and `Features/Social/Leaderboard/` (Phase 4d-2) round out
+the "Profile" tab's self-contained screens. `FriendsViewModel` (`@MainActor
+ObservableObject`, same three-stream `Task { for await ... }`/`start`/`stop` pattern as
+`PresenceCoordinator`) subscribes to `FriendsService().observeFriends(uid:)`/
+`observeIncomingFriendRequests(uid:)`/`observeBlockedUsers(uid:)` and drives
+`FriendsView` (Add Friend by UID, incoming-request Accept/Decline, friends list with
+Remove/Block context menu, blocked-users list with Unblock). Since there's no user
+search, `sendFriendRequest(authUser:)` validates the target UID via
+`ProfileService().fetchProfile(uid:)` before calling
+`FriendsService().sendFriendRequest(fromUid:fromName:fromAvatarId:toUid:)` (using the
+sender's own `PlayerIdentityStore` name/avatar) — `ProfileView` gained a "Your ID" row
+(monospaced `authUser.uid` + copy-to-clipboard button) so users have something to
+share. `LeaderboardViewModel`/`LeaderboardView` is a simple `LeaderboardService()
+.fetchTopPlayers(limit:)` → ranked `List`, highlighting the signed-in user's row via
+`.listRowBackground`. `SocialHubView` now has `NavigationLink`s to both screens plus a
+new `SocialHubViewModel` that subscribes to `observeIncomingFriendRequests(uid:)` purely
+to show a `PillBadge` request count next to "Friends"; "Messages"/"Game Invites" remain
+disabled placeholders for Phase 4d-3.
 
 ## Wire-format fidelity rule
 
@@ -406,10 +439,15 @@ wire format changes.
   - **Phase 4d-1 (done)**: Profile/Settings screens, shared app-wide `AuthViewModel`,
     and RTDB presence wiring (`PresenceCoordinator`). See Status above and
     `docs/PHASE4D1_PLAN.md`.
-  - **Phase 4d-2 (not started)**: Remaining social features — friends/friend requests,
-    DM chat, game invites, leaderboard (`FriendsService`/`ConversationService`/
-    `GameInviteService`/`LeaderboardService`), surfaced from `SocialHubView`'s
-    currently-disabled placeholders.
+  - **Phase 4d-2 (done)**: Friends (friend requests/friends list/blocks,
+    `FriendsService`) and Leaderboard (`LeaderboardService`), surfaced from
+    `SocialHubView`'s previously-disabled placeholders. See Status above and
+    `docs/PHASE4D2_PLAN.md`.
+  - **Phase 4d-3 (not started)**: DM chat (`ConversationService`) and Game Invites
+    (`GameInviteService`) — both need a friend-picker (reusing `FriendsService
+    .observeFriends`) and, for invites, hooks into `OnlineHostLobbyView` to send an
+    invite and `OnlineRootView`/the online flow to accept one (join the room and
+    navigate to `OnlineGuestLobbyView`).
 - **Phase 5 — Admin app**: separate SwiftUI (macOS/iPadOS) project for campaign management,
   sharing the same Firebase project (`kadi-ios`).
 - **Phase 6 — Cloud Functions**: remain TypeScript (region `europe-west1`), same
