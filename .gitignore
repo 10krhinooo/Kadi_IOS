@@ -17,3 +17,6 @@ ui-debug.log
 firebase-debug.log
 database-debug.log
 .firebase/
+
+# Firebase app config (contains project-identifying values; not committed)
+GoogleService-Info.plist
