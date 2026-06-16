@@ -19,7 +19,7 @@ struct ActionBar: View {
             .buttonStyle(PrimaryButtonStyle())
             .disabled(viewModel.selectedCardIndices.isEmpty)
 
-            Button("Pass") {
+            Button("Draw Card") {
                 viewModel.pass()
             }
             .buttonStyle(SecondaryButtonStyle())
@@ -33,10 +33,10 @@ struct ActionBar: View {
             }
 
             if viewModel.canDeclareKadi {
-                Button("Declare Kadi") {
+                Button("KADI") {
                     viewModel.declareKadi()
                 }
-                .buttonStyle(PrimaryButtonStyle())
+                .buttonStyle(KadiDeclareButtonStyle())
             }
         }
         .padding(.horizontal, KadiTheme.Layout.spacingM)

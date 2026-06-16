@@ -48,6 +48,14 @@ struct OnlineGameView: View {
                 .padding(.top, KadiTheme.Layout.spacingM)
                 .padding(.horizontal, KadiTheme.Layout.spacingM)
 
+                if let kadiState = viewModel.state.kadiState {
+                    KadiBanner(
+                        playerName: viewModel.state.players[kadiState.declaringPlayerIndex].name,
+                        isLocalPlayer: kadiState.declaringPlayerIndex == viewModel.localPlayerIndex
+                    )
+                    .padding(.top, KadiTheme.Layout.spacingS)
+                }
+
                 if viewModel.isLocalPlayerTurn {
                     PillBadge(text: "Your Turn")
                         .padding(.top, KadiTheme.Layout.spacingS)
@@ -93,6 +101,7 @@ struct OnlineGameView: View {
         }
         .navigationBarBackButtonHidden(viewModel.state.phase != .finished)
         .exitGameButton { dismiss() }
+        .gameHelpButton()
         .onDisappear {
             viewModel.stop()
         }
@@ -111,6 +120,7 @@ struct OnlineGameView: View {
         if viewModel.state.phase == .finished {
             GameOverOverlay(
                 winnerName: viewModel.winner?.name,
+                isLocalWinner: viewModel.winner?.id == viewModel.localPlayer.id,
                 onPlayAgain: { dismiss() },
                 onBackToHome: { dismiss() }
             )

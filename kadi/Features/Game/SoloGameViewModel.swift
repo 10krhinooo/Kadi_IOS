@@ -34,6 +34,8 @@ final class SoloGameViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isCpuThinking: Bool = false
 
+    private var isAutoActing = false
+
     let humanIndex = 0
     private let opponentCount: Int
     private let difficulty: CpuDifficulty
@@ -144,7 +146,8 @@ final class SoloGameViewModel: ObservableObject {
     }
 
     func declareKadi() {
-        perform(.declareKadi(cards: selectedCards()))
+        let cards = selectedCardIndices.isEmpty ? humanPlayer.hand : selectedCards()
+        perform(.declareKadi(cards: cards))
     }
 
     func chooseSuit(_ suit: Suit) {
@@ -174,6 +177,7 @@ final class SoloGameViewModel: ObservableObject {
     // MARK: - Action application
 
     private func perform(_ action: GameAction) {
+        isAutoActing = false
         if let error = GameEngine.validateAction(state, action) {
             errorMessage = error
             return
@@ -189,6 +193,35 @@ final class SoloGameViewModel: ObservableObject {
         selectedCardIndices = []
         checkGameOver()
         scheduleCpuTurnIfNeeded()
+    }
+
+    private func checkAutoActions() {
+        guard !isAutoActing, isHumanTurn, state.phase != .finished else { return }
+
+        if state.isDrawStackActive {
+            let hand = humanPlayer.hand
+            let hasCounter = hand.contains { $0.isDrawCard } || hand.contains { $0.isAce }
+            if !hasCounter {
+                isAutoActing = true
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .milliseconds(700))
+                    guard let self, self.isAutoActing else { return }
+                    self.isAutoActing = false
+                    self.drawStack()
+                }
+                return
+            }
+        }
+
+        if (state.phase == .playing || state.phase == .questionAnswer), playableIndices.isEmpty {
+            isAutoActing = true
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(700))
+                guard let self, self.isAutoActing else { return }
+                self.isAutoActing = false
+                self.pass()
+            }
+        }
     }
 
     private func recordPlayedForHardCpus(newDiscards: [PlayingCard]) {
@@ -248,6 +281,7 @@ final class SoloGameViewModel: ObservableObject {
         recordPlayedForHardCpus(newDiscards: Array(state.discardPile.dropFirst(before.count)))
         checkGameOver()
         scheduleCpuTurnIfNeeded()
+        checkAutoActions()
     }
 
     /// Falls back to a guaranteed-valid action if the agent's chosen action fails

@@ -46,21 +46,53 @@ struct PlayingCardView: View {
     @ViewBuilder
     private func cardFace(_ card: PlayingCard) -> some View {
         let color = card.isRed ? KadiTheme.Colors.suitRed : KadiTheme.Colors.suitBlack
-        VStack(spacing: 2) {
-            Text(card.rankLabel)
-                .font(width < 56 ? KadiTheme.Typography.cardRankSmall : KadiTheme.Typography.cardRank)
-                .foregroundStyle(color)
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
-            if card.isJoker {
+        let isSmall = width < 56
+
+        if card.isJoker {
+            VStack(spacing: 2) {
+                Text(card.rankLabel)
+                    .font(isSmall ? KadiTheme.Typography.cardRankSmall : KadiTheme.Typography.cardRank)
+                    .foregroundStyle(color)
                 Text("🃏")
-                    .font(.system(size: width < 56 ? 16 : 22))
-            } else {
+                    .font(.system(size: isSmall ? 18 : 26))
+            }
+            .padding(4)
+        } else {
+            let cornerRankFont  = Font.system(size: isSmall ? 11 : 14, weight: .bold, design: .rounded)
+            let cornerSuitFont  = Font.system(size: isSmall ? 10 : 12, weight: .bold)
+            let centerSuitFont  = Font.system(size: isSmall ? 22 : 34, weight: .bold)
+
+            ZStack(alignment: .topLeading) {
+                // Bottom-right corner (rotated 180°)
+                VStack(spacing: 0) {
+                    Text(card.rankLabel)
+                        .font(cornerRankFont)
+                    Text(card.suitSymbol)
+                        .font(cornerSuitFont)
+                }
+                .foregroundStyle(color)
+                .rotationEffect(.degrees(180))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .padding(isSmall ? 2 : 4)
+
+                // Top-left corner
+                VStack(spacing: 0) {
+                    Text(card.rankLabel)
+                        .font(cornerRankFont)
+                    Text(card.suitSymbol)
+                        .font(cornerSuitFont)
+                }
+                .foregroundStyle(color)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(isSmall ? 2 : 4)
+
+                // Center suit symbol
                 Text(card.suitSymbol)
-                    .font(.system(size: width < 56 ? 16 : 22))
+                    .font(centerSuitFont)
+                    .foregroundStyle(color)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
-        .padding(4)
     }
 
     private var cardBackPattern: some View {

@@ -25,6 +25,8 @@ final class OnlineGameViewModel: ObservableObject {
     @Published var selectedCardIndices: Set<Int> = []
     @Published var errorMessage: String?
 
+    private var isAutoActing = false
+
     let localPlayerIndex: Int
     let isHostRole: Bool
 
@@ -117,7 +119,8 @@ final class OnlineGameViewModel: ObservableObject {
     }
 
     func declareKadi() {
-        perform(.declareKadi(cards: selectedCards()))
+        let cards = selectedCardIndices.isEmpty ? localPlayer.hand : selectedCards()
+        perform(.declareKadi(cards: cards))
     }
 
     func chooseSuit(_ suit: Suit) {
@@ -147,6 +150,7 @@ final class OnlineGameViewModel: ObservableObject {
     // MARK: - Action submission
 
     private func perform(_ action: GameAction) {
+        isAutoActing = false
         if let error = GameEngine.validateAction(state, action) {
             errorMessage = error
             return
@@ -167,6 +171,35 @@ final class OnlineGameViewModel: ObservableObject {
         }
     }
 
+    private func checkAutoActions() {
+        guard !isAutoActing, isLocalPlayerTurn, state.phase != .finished else { return }
+
+        if state.isDrawStackActive {
+            let hand = localPlayer.hand
+            let hasCounter = hand.contains { $0.isDrawCard } || hand.contains { $0.isAce }
+            if !hasCounter {
+                isAutoActing = true
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .milliseconds(700))
+                    guard let self, self.isAutoActing else { return }
+                    self.isAutoActing = false
+                    self.drawStack()
+                }
+                return
+            }
+        }
+
+        if (state.phase == .playing || state.phase == .questionAnswer), playableIndices.isEmpty {
+            isAutoActing = true
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(700))
+                guard let self, self.isAutoActing else { return }
+                self.isAutoActing = false
+                self.pass()
+            }
+        }
+    }
+
     // MARK: - Subscriptions
 
     private func subscribe() {
@@ -179,6 +212,7 @@ final class OnlineGameViewModel: ObservableObject {
                     if let gameState = room.gameState {
                         self.state = gameState
                         self.selectedCardIndices = []
+                        self.checkAutoActions()
                     }
                 }
             } catch {

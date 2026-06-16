@@ -53,6 +53,13 @@ struct HomeView: View {
                             Text("Profile")
                         }
                         .buttonStyle(SecondaryButtonStyle())
+
+                        NavigationLink {
+                            RulesView()
+                        } label: {
+                            Text("How to Play")
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
                     }
                     .padding(.horizontal, KadiTheme.Layout.spacingL)
 

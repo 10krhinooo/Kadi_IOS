@@ -35,6 +35,14 @@ struct SoloGameView: View {
                 .padding(.top, KadiTheme.Layout.spacingM)
                 .padding(.horizontal, KadiTheme.Layout.spacingM)
 
+                if let kadiState = viewModel.state.kadiState {
+                    KadiBanner(
+                        playerName: viewModel.state.players[kadiState.declaringPlayerIndex].name,
+                        isLocalPlayer: kadiState.declaringPlayerIndex == viewModel.humanIndex
+                    )
+                    .padding(.top, KadiTheme.Layout.spacingS)
+                }
+
                 if viewModel.isCpuThinking {
                     PillBadge(text: "CPU thinking…", tint: KadiTheme.Colors.surfaceElevated)
                         .padding(.top, KadiTheme.Layout.spacingS)
@@ -80,6 +88,7 @@ struct SoloGameView: View {
         }
         .navigationBarBackButtonHidden(viewModel.state.phase != .finished)
         .exitGameButton { dismiss() }
+        .gameHelpButton()
         .alert("Invalid Move", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
@@ -95,6 +104,7 @@ struct SoloGameView: View {
         if viewModel.state.phase == .finished {
             GameOverOverlay(
                 winnerName: viewModel.winner?.name,
+                isLocalWinner: viewModel.winner?.id == viewModel.humanPlayer.id,
                 onPlayAgain: { viewModel.reset() },
                 onBackToHome: { dismiss() }
             )

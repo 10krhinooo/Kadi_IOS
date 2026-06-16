@@ -35,10 +35,10 @@ public enum Suit: String, Codable, CaseIterable, Sendable {
     /// Suit symbol used by `PlayingCard.suitSymbol` / `displayName`.
     public var symbol: String {
         switch self {
-        case .hearts: return "♥️"
-        case .diamonds: return "♦️"
-        case .clubs: return "♣️"
-        case .spades: return "♠️"
+        case .hearts: return "♥"
+        case .diamonds: return "♦"
+        case .clubs: return "♣"
+        case .spades: return "♠"
         }
     }
 }

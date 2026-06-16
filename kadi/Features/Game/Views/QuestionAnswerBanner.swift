@@ -15,18 +15,18 @@ struct QuestionAnswerBanner: View {
     var body: some View {
         HStack {
             if let forcedSuit {
-                Text("Play a \(forcedSuit.symbol) card, or pass")
+                Text("Play a \(forcedSuit.symbol) card, or draw")
                     .font(KadiTheme.Typography.callout)
                     .foregroundStyle(KadiTheme.Colors.textPrimary)
             } else {
-                Text("Play any card, or pass")
+                Text("Play any card, or draw")
                     .font(KadiTheme.Typography.callout)
                     .foregroundStyle(KadiTheme.Colors.textPrimary)
             }
 
             Spacer()
 
-            Button("Pass", action: onPass)
+            Button("Draw Card", action: onPass)
                 .buttonStyle(SecondaryButtonStyle())
                 .fixedSize()
         }
