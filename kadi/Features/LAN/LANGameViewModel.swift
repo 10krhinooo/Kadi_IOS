@@ -96,12 +96,7 @@ final class LANGameViewModel: ObservableObject {
     }
 
     var canDeclareKadi: Bool {
-        KadiValidator.canDeclareKadi(
-            hand: localPlayer.hand,
-            topCard: state.topCard,
-            forcedSuit: state.forcedSuit,
-            rules: state.rules
-        )
+        state.phase == .playing && !state.isDrawStackActive
     }
 
     var isLocalPlayerTurn: Bool {

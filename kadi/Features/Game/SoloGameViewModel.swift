@@ -106,12 +106,7 @@ final class SoloGameViewModel: ObservableObject {
     }
 
     var canDeclareKadi: Bool {
-        KadiValidator.canDeclareKadi(
-            hand: humanPlayer.hand,
-            topCard: state.topCard,
-            forcedSuit: state.forcedSuit,
-            rules: state.rules
-        )
+        state.phase == .playing && !state.isDrawStackActive
     }
 
     var isHumanTurn: Bool {
