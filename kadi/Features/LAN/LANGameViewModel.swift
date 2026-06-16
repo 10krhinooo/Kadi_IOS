@@ -136,8 +136,7 @@ final class LANGameViewModel: ObservableObject {
     }
 
     func declareKadi() {
-        let cards = selectedCardIndices.isEmpty ? localPlayer.hand : selectedCards()
-        perform(.declareKadi(cards: cards))
+        perform(.declareKadi(cards: selectedCards()))
     }
 
     func chooseSuit(_ suit: Suit) {

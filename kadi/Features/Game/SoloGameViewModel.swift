@@ -146,8 +146,7 @@ final class SoloGameViewModel: ObservableObject {
     }
 
     func declareKadi() {
-        let cards = selectedCardIndices.isEmpty ? humanPlayer.hand : selectedCards()
-        perform(.declareKadi(cards: cards))
+        perform(.declareKadi(cards: selectedCards()))
     }
 
     func chooseSuit(_ suit: Suit) {
