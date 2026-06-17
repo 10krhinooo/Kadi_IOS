@@ -93,10 +93,10 @@ public struct FriendsService: Sendable {
             throw FriendsServiceError.requestNotFound
         }
 
-        if try await isBlocked(fromUid, by: toUid) {
-            throw FriendsServiceError.blocked
-        }
-        if try await isBlocked(toUid, by: fromUid) {
+        async let blocked1 = isBlocked(fromUid, by: toUid)
+        async let blocked2 = isBlocked(toUid, by: fromUid)
+        let (b1, b2) = try await (blocked1, blocked2)
+        if b1 || b2 {
             throw FriendsServiceError.blocked
         }
 

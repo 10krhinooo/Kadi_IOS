@@ -31,9 +31,10 @@ public struct ConversationService: Sendable {
 
     /// Returns whether either party has blocked the other.
     private func isBlocked(senderUid: String, recipientUid: String) async throws -> Bool {
-        let recipientBlockedSender = try await blockedRef(recipientUid).document(senderUid).getDocument().exists
-        let senderBlockedRecipient = try await blockedRef(senderUid).document(recipientUid).getDocument().exists
-        return recipientBlockedSender || senderBlockedRecipient
+        async let recipientBlockedSender = blockedRef(recipientUid).document(senderUid).getDocument()
+        async let senderBlockedRecipient = blockedRef(senderUid).document(recipientUid).getDocument()
+        let (a, b) = try await (recipientBlockedSender.exists, senderBlockedRecipient.exists)
+        return a || b
     }
 
     /// Appends a message and updates the conversation doc (`participants`,

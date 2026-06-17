@@ -43,5 +43,6 @@ struct GameOverOverlay: View {
                 }
             }
         }
+        .onAppear { if isLocalWinner { Haptics.win() } }
     }
 }

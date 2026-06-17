@@ -10,7 +10,6 @@ import KadiEngine
 /// 8/Q, must immediately play a card of `forcedSuit` (highlighted in the hand) or pass.
 struct QuestionAnswerBanner: View {
     let forcedSuit: Suit?
-    let onPass: () -> Void
 
     var body: some View {
         HStack {
@@ -25,10 +24,6 @@ struct QuestionAnswerBanner: View {
             }
 
             Spacer()
-
-            Button("Draw Card", action: onPass)
-                .buttonStyle(SecondaryButtonStyle())
-                .fixedSize()
         }
         .padding(.horizontal, KadiTheme.Layout.spacingM)
         .padding(.vertical, KadiTheme.Layout.spacingS)

@@ -6,6 +6,9 @@
 import SwiftUI
 
 struct HomeView: View {
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @State private var showOnboarding = false
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -55,6 +58,13 @@ struct HomeView: View {
                         .buttonStyle(SecondaryButtonStyle())
 
                         NavigationLink {
+                            TutorialView()
+                        } label: {
+                            Text("Tutorial")
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+
+                        NavigationLink {
                             RulesView()
                         } label: {
                             Text("How to Play")
@@ -64,6 +74,17 @@ struct HomeView: View {
                     .padding(.horizontal, KadiTheme.Layout.spacingL)
 
                     Spacer()
+                }
+            }
+            .sheet(isPresented: $showOnboarding) {
+                NavigationStack {
+                    OnboardingView(isPresented: $showOnboarding)
+                }
+            }
+            .onAppear {
+                if !hasSeenOnboarding {
+                    showOnboarding = true
+                    hasSeenOnboarding = true
                 }
             }
         }

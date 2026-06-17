@@ -88,9 +88,7 @@ struct LANGameView: View {
 
                 VStack(spacing: KadiTheme.Layout.spacingS) {
                     if viewModel.isLocalPlayerTurn && viewModel.state.phase == .questionAnswer {
-                        QuestionAnswerBanner(forcedSuit: viewModel.state.forcedSuit) {
-                            viewModel.pass()
-                        }
+                        QuestionAnswerBanner(forcedSuit: viewModel.state.forcedSuit)
                     }
 
                     PlayerHandView(
@@ -100,7 +98,7 @@ struct LANGameView: View {
                         onTap: { viewModel.toggleSelection(at: $0) }
                     )
 
-                    if viewModel.isLocalPlayerTurn && viewModel.state.phase == .playing {
+                    if viewModel.isLocalPlayerTurn && (viewModel.state.phase == .playing || viewModel.state.phase == .questionAnswer) {
                         LANActionBar(viewModel: viewModel)
                     }
                 }

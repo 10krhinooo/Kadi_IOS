@@ -24,7 +24,7 @@ struct PlayerHandView: View {
                         isSelected: selectedIndices.contains(index),
                         isHighlighted: playableIndices.contains(index)
                     )
-                    .onTapGesture { onTap(index) }
+                    .onTapGesture { Haptics.cardTap(); onTap(index) }
                     .zIndex(selectedIndices.contains(index) ? 1 : 0)
                 }
             }

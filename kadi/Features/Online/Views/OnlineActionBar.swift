@@ -14,30 +14,32 @@ struct OnlineActionBar: View {
 
     var body: some View {
         HStack(spacing: KadiTheme.Layout.spacingS) {
+            if viewModel.canDeclareKadi {
+                Button("KADI") {
+                    Haptics.kadiDeclare()
+                    viewModel.declareKadi()
+                }
+                .buttonStyle(KadiDeclareButtonStyle())
+                .disabled(viewModel.selectedCardIndices.isEmpty)
+            }
+
             Button("Play (\(viewModel.selectedCardIndices.count))") {
+                Haptics.cardPlay()
                 viewModel.confirmPlaySelected()
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(viewModel.selectedCardIndices.isEmpty)
 
-            Button("Draw Card") {
-                viewModel.pass()
-            }
-            .buttonStyle(SecondaryButtonStyle())
-            .disabled(viewModel.state.isDrawStackActive)
-
             if viewModel.state.isDrawStackActive {
-                Button("Draw Stack") {
+                Button("Draw (+\(viewModel.state.pendingDrawCount))") {
                     viewModel.drawStack()
                 }
                 .buttonStyle(SecondaryButtonStyle())
-            }
-
-            if viewModel.canDeclareKadi {
-                Button("KADI") {
-                    viewModel.declareKadi()
+            } else {
+                Button("Draw Card") {
+                    viewModel.pass()
                 }
-                .buttonStyle(KadiDeclareButtonStyle())
+                .buttonStyle(SecondaryButtonStyle())
             }
         }
         .padding(.horizontal, KadiTheme.Layout.spacingM)

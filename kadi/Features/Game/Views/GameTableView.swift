@@ -41,6 +41,32 @@ private struct ForcedSuitBadge: View {
     }
 }
 
+private struct DrawStackBadge: View {
+    let count: Int
+    @State private var pulse = false
+
+    var body: some View {
+        Text("Draw +\(count)")
+            .font(.system(.caption, design: .rounded).weight(.semibold))
+            .foregroundStyle(KadiTheme.Colors.warning)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(KadiTheme.Colors.surfaceElevated)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(KadiTheme.Colors.warning, lineWidth: pulse ? 2 : 1)
+                    .opacity(pulse ? 1 : 0.6)
+            )
+            .shadow(color: KadiTheme.Colors.warning.opacity(pulse ? 0.6 : 0.15), radius: pulse ? 8 : 3)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
+                    pulse = true
+                }
+            }
+    }
+}
+
 /// Center-of-table area: discard pile (top card), draw pile with count, direction
 /// indicator, and badges for an active draw stack / forced suit.
 struct GameTableView: View {
@@ -57,7 +83,7 @@ struct GameTableView: View {
                     .foregroundStyle(KadiTheme.Colors.textSecondary)
 
                 if pendingDrawCount > 0 {
-                    PillBadge(text: "Draw +\(pendingDrawCount)", tint: KadiTheme.Colors.warning)
+                    DrawStackBadge(count: pendingDrawCount)
                 }
 
                 if let forcedSuit {

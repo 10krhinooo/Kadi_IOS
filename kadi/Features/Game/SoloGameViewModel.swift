@@ -106,7 +106,13 @@ final class SoloGameViewModel: ObservableObject {
     }
 
     var canDeclareKadi: Bool {
-        state.phase == .playing && !state.isDrawStackActive
+        guard state.phase == .playing && !state.isDrawStackActive else { return false }
+        return KadiValidator.canDeclareKadi(
+            hand: humanPlayer.hand,
+            topCard: state.topCard,
+            forcedSuit: state.forcedSuit,
+            rules: state.rules
+        )
     }
 
     var isHumanTurn: Bool {
@@ -194,11 +200,17 @@ final class SoloGameViewModel: ObservableObject {
 
         if state.isDrawStackActive {
             let hand = humanPlayer.hand
-            let hasCounter = hand.contains { $0.isDrawCard } || hand.contains { $0.isAce }
+            let rules = state.rules
+            let hasCounter = hand.contains {
+                let r = $0.rank
+                if r == .two { return rules.twosEnabled }
+                if r == .three { return rules.threesEnabled }
+                return $0.isDrawCard
+            } || hand.contains { $0.isAce }
             if !hasCounter {
                 isAutoActing = true
                 Task { @MainActor [weak self] in
-                    try? await Task.sleep(for: .milliseconds(700))
+                    try? await Task.sleep(for: .milliseconds(1500))
                     guard let self, self.isAutoActing else { return }
                     self.isAutoActing = false
                     self.drawStack()
@@ -210,7 +222,7 @@ final class SoloGameViewModel: ObservableObject {
         if (state.phase == .playing || state.phase == .questionAnswer), playableIndices.isEmpty {
             isAutoActing = true
             Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .milliseconds(700))
+                try? await Task.sleep(for: .milliseconds(1500))
                 guard let self, self.isAutoActing else { return }
                 self.isAutoActing = false
                 self.pass()
@@ -255,7 +267,7 @@ final class SoloGameViewModel: ObservableObject {
         guard let actingIndex = cpuActingPlayerIndex(), actingIndex != humanIndex else { return }
         isCpuThinking = true
         Task {
-            try? await Task.sleep(for: .milliseconds(700))
+            try? await Task.sleep(for: .milliseconds(3000))
             await self.runCpuTurn(for: actingIndex)
         }
     }
@@ -272,7 +284,8 @@ final class SoloGameViewModel: ObservableObject {
             return
         }
         state = newState
-        recordPlayedForHardCpus(newDiscards: Array(state.discardPile.dropFirst(before.count)))
+        let newDiscards = Array(state.discardPile.dropFirst(before.count))
+        recordPlayedForHardCpus(newDiscards: newDiscards)
         checkGameOver()
         scheduleCpuTurnIfNeeded()
         checkAutoActions()

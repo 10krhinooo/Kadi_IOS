@@ -26,13 +26,14 @@ extension GameEngine {
         // Step 2: hand now empty -> win check.
         if newState.players[playerIndex].hand.isEmpty {
             let hasActiveDeclaration = newState.kadiState?.declaringPlayerIndex == playerIndex
-            if isDeclaring || hasActiveDeclaration {
+            if (isDeclaring || hasActiveDeclaration) && lastCard.canEndGame {
                 newState.phase = .finished
                 newState.pendingDrawCount = 0
                 newState.winningCards = cards
                 return newState
             } else {
                 // False-Kadi penalty: draw 2 (hardcoded regardless of rules.kadiPenalty).
+                // Also covers the case where the last card cannot end the game (e.g. King).
                 drawCards(&newState, count: 2, playerIndex: playerIndex, using: &rng)
                 advanceTurn(&newState)
                 return newState
@@ -53,7 +54,7 @@ extension GameEngine {
                 .filter { isRuledDrawCard($0, rules: newState.rules) }
                 .reduce(0) { $0 + $1.drawValue }
             if newState.isDrawStackActive {
-                newState.pendingDrawCount += chainDrawValue
+                newState.pendingDrawCount += lastCard.drawValue
             } else {
                 newState.pendingDrawCount = chainDrawValue
             }

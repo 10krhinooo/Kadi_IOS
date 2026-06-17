@@ -65,9 +65,7 @@ struct SoloGameView: View {
 
                 VStack(spacing: KadiTheme.Layout.spacingS) {
                     if viewModel.isHumanTurn && viewModel.state.phase == .questionAnswer {
-                        QuestionAnswerBanner(forcedSuit: viewModel.state.forcedSuit) {
-                            viewModel.pass()
-                        }
+                        QuestionAnswerBanner(forcedSuit: viewModel.state.forcedSuit)
                     }
 
                     PlayerHandView(
@@ -77,18 +75,18 @@ struct SoloGameView: View {
                         onTap: { viewModel.toggleSelection(at: $0) }
                     )
 
-                    if viewModel.isHumanTurn && viewModel.state.phase == .playing {
+                    if viewModel.isHumanTurn && (viewModel.state.phase == .playing || viewModel.state.phase == .questionAnswer) {
                         ActionBar(viewModel: viewModel)
                     }
                 }
                 .padding(.bottom, KadiTheme.Layout.spacingM)
             }
-
             overlay
         }
         .navigationBarBackButtonHidden(viewModel.state.phase != .finished)
         .exitGameButton { dismiss() }
         .gameHelpButton()
+        .onChange(of: viewModel.errorMessage) { if $0 != nil { Haptics.error() } }
         .alert("Invalid Move", isPresented: Binding(
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }

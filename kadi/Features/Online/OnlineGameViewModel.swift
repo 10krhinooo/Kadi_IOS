@@ -79,7 +79,13 @@ final class OnlineGameViewModel: ObservableObject {
     }
 
     var canDeclareKadi: Bool {
-        state.phase == .playing && !state.isDrawStackActive
+        guard state.phase == .playing && !state.isDrawStackActive else { return false }
+        return KadiValidator.canDeclareKadi(
+            hand: localPlayer.hand,
+            topCard: state.topCard,
+            forcedSuit: state.forcedSuit,
+            rules: state.rules
+        )
     }
 
     var isLocalPlayerTurn: Bool {
@@ -170,11 +176,17 @@ final class OnlineGameViewModel: ObservableObject {
 
         if state.isDrawStackActive {
             let hand = localPlayer.hand
-            let hasCounter = hand.contains { $0.isDrawCard } || hand.contains { $0.isAce }
+            let rules = state.rules
+            let hasCounter = hand.contains {
+                let r = $0.rank
+                if r == .two { return rules.twosEnabled }
+                if r == .three { return rules.threesEnabled }
+                return $0.isDrawCard
+            } || hand.contains { $0.isAce }
             if !hasCounter {
                 isAutoActing = true
                 Task { @MainActor [weak self] in
-                    try? await Task.sleep(for: .milliseconds(700))
+                    try? await Task.sleep(for: .milliseconds(1500))
                     guard let self, self.isAutoActing else { return }
                     self.isAutoActing = false
                     self.drawStack()
@@ -186,7 +198,7 @@ final class OnlineGameViewModel: ObservableObject {
         if (state.phase == .playing || state.phase == .questionAnswer), playableIndices.isEmpty {
             isAutoActing = true
             Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .milliseconds(700))
+                try? await Task.sleep(for: .milliseconds(1500))
                 guard let self, self.isAutoActing else { return }
                 self.isAutoActing = false
                 self.pass()

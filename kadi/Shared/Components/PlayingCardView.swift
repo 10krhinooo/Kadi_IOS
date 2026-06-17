@@ -16,6 +16,8 @@ struct PlayingCardView: View {
     var isSelected: Bool = false
     var isHighlighted: Bool = false
 
+    @State private var shimmer = false
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: KadiTheme.Layout.cardCornerRadius)
@@ -34,7 +36,11 @@ struct PlayingCardView: View {
         .frame(width: width, height: height)
         .shadow(color: .black.opacity(0.3), radius: 3, y: 2)
         .offset(y: isSelected ? -12 : 0)
+        .scaleEffect(isHighlighted && shimmer ? 1.03 : 1.0)
         .animation(.spring(response: 0.25), value: isSelected)
+        .animation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true), value: shimmer)
+        .onAppear { if isHighlighted { shimmer = true } }
+        .onChange(of: isHighlighted) { newVal in shimmer = newVal }
     }
 
     private var borderColor: Color {

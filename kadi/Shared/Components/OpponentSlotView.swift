@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import KadiEngine
 
 /// Shows an opponent's avatar, name, a small fan of face-down cards, and a card-count
 /// badge. In Solo mode card counts are always shown (the `showOpponentCardCounts` rule
@@ -14,7 +15,6 @@ struct OpponentSlotView: View {
     var isCurrentTurn: Bool = false
     var avatarIndex: Int = 0
     var isCPUControlled: Bool = false
-
     var body: some View {
         VStack(spacing: 4) {
             ZStack {

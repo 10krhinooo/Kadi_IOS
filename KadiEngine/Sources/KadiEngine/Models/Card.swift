@@ -99,10 +99,10 @@ public struct PlayingCard: Codable, Equatable, Hashable, Sendable {
         isDrawCard || isQuestionCard || isSkipCard || isReverseCard || isAce
     }
 
-    /// True only for ranks four..ten and king.
+    /// True for ranks four..ten. Kings, Aces, Jacks, Queens, 2s, 3s and Jokers cannot end the game.
     public var canEndGame: Bool {
         switch rank {
-        case .four, .five, .six, .seven, .eight, .nine, .ten, .king:
+        case .four, .five, .six, .seven, .eight, .nine, .ten:
             return true
         default:
             return false
